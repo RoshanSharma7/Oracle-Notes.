@@ -1,0 +1,176 @@
+SEQUENCE: (18-09-2024)
+==========
+	- it is a database object which is used to generate sequence numbers
+on a specific column in the table automatically.
+	- it will provide "auto incremental value" facility on a table.
+
+syntax:
+======
+create sequence <sequence name>
+[start with n]
+[minvalue n]
+[increment by n]
+[maxvalue n]
+[no cycle / cycle]
+[no cache / cache n];
+
+start with n:
+===========
+	- to specify the starting number of a sequence.
+	- Here "n" is number.
+
+minvalue n:
+==========
+	- to show minimum value from the sequence numbers.
+	- Here "n" is number.
+
+increment by n:
+=============
+	- to specify the incremental value between sequence numbers.
+	- Here "n" is number.
+
+maxvalue n:
+===========
+	- to show maximum value from the sequence numbers.
+	- Here "n" is number.
+
+no cycle:
+========
+	- it is a default attribute of sequence object.
+	- when we created a sequence object with "no cycle" then the set of
+	sequence numbers are not repeated again and again.
+
+cycle:
+======
+	- when we created a sequence object with "cycle" then the set of
+	sequence numbers are repeated again and again.
+
+no cache:
+========
+	- it is a default attribute of sequence object.
+	- when we created a sequence object with "no cache then the set of 
+	sequence numbers are saved in database directly.
+	- whenever user is retrieving data from a table based on sequence number
+	condition then that every user request will go database,searching,finding
+	and send back to client application.so that it leads burdon on database
+	and reduce the perfomance of database.
+	- to overcome the above problems we should create sequence object 
+	with cache memory.
+
+cache n:
+=======
+	- when we created a sequence object with "cache" then the set of sequence
+numbers are saved in database and also the copy of data keep in cache memory.
+so that each and every user request is going to cache instead of database and 
+fetching data from cache to client application.so that it reduce the burdon on 
+database and improve the performance of database.
+	- cache file minimum size is 2kb and maximum size is depends on ram.
+
+NOTE:
+======
+	- when we want to generate sequence numbers on a column then we 
+use a pseudo column is "NEXTVAL" along with sequence object.
+	NEXTVAL:
+	=========
+		- to generate next by next  value.
+	syntax:
+	=======
+		<sequence object name>.NEXTVAL
+
+EX:
+SQL> CREATE SEQUENCE SQ1
+  2  START WITH 1
+  3  MINVALUE 1
+  4  INCREMENT BY 1
+  5  MAXVALUE 3;
+
+TESTING:
+SQL> CREATE TABLE TEST21(SNO NUMBER(4),NAME VARCHAR2(10));
+SQL> INSERT INTO TEST21 VALUES(SQ1.NEXTVAL,'&NAME');
+Enter value for name: A
+
+SQL> /
+Enter value for name: B
+
+SQL> /
+Enter value for name: C
+
+SQL> /
+Enter value for name: D
+ERROR at line 1:
+ORA-08004: sequence SQ1.NEXTVAL exceeds MAXVALUE and cannot be instantiated.
+
+Altering a sequence object:
+=======================
+syntax:
+=======
+ALTER SEQUENCE <sequence name> <ATTRIBUTE NAME> n;
+
+EX:
+SQL> ALTER SEQUENCE SQ1 MAXVALUE 5;
+
+TESTING:
+SQL> INSERT INTO TEST21 VALUES(SQ1.NEXTVAL,'&NAME');
+Enter value for name: D
+
+SQL> /
+Enter value for name: E
+
+OUTPUT:
+========
+SQL> SELECT * FROM TEST21;
+
+EX:
+SQL> CREATE SEQUENCE SQ2
+  2  START WITH 3
+  3  MINVALUE 1
+  4  INCREMENT BY 1
+  5  MAXVALUE 5
+  6  CYCLE
+  7  CACHE 2;
+
+TESTING:
+SQL> CREATE TABLE TEST22(SNO NUMBER(3),NAME VARCHAR2(10));
+SQL> INSERT INTO TEST22 VALUES(SQ2.NEXTVAL,'&NAME');
+Enter value for name: Q
+
+SQL> /
+Enter value for name: P
+
+SQL> /
+....................................
+
+NOTE:
+=====
+	- if we want to view all sequence objects in oracle database then use
+a datadictionary is "user_sequences".
+
+EX:
+SQL> DESC USER_SEQUENCES;
+SQL> SELECT SEQUENCE_NAME FROM USER_SEQUENCES;
+
+How to drop a sequence:
+=====================
+syntax:
+=======
+DROP SEQUENCE <sequence name>;
+
+EX:
+SQL> DROP SEQUENCE SQ1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+

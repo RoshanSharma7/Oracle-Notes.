@@ -1,0 +1,138 @@
+SYNONYM:(17-09-2024)
+=========
+	- it is a db object which is used to create a permanent alias name for 
+table name / object name.
+
+Purpose of synonym:
+=================
+	i) To reduce lengthy table names.
+	ii) To hide owner name and also table name.
+
+Types of synonyms:
+=================
+	1) private synonyms(default synonym)
+	2) public synonyms
+
+1) private synonyms:
+=================	
+	- these synonyms are created by user who are having permission.
+	- to reduce lengthy table name.
+
+syntax:
+=======
+create synonym <synonym name> for [owner name].<table name/object name>;
+
+Ex:
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+SQL> GRANT CREATE SYNONYM TO MYDB4PM;
+Grant succeeded.
+
+SQL> CONN
+Enter user-name: MYDB4PM/MYDB4PM
+Connected.
+
+SQL> CREATE SYNONYM S1 FOR MYDB4PM.COLLEGE_ENROLLMENT_DETAILS;
+Synonym created.
+
+TESTING:
+SQL> SELECT * FROM S1;
+SQL> INSERT INTO S1 VALUES(1,'SMITH','CSE');        
+SQL> UPDATE  S1 SET STID=1021 WHERE STID=1;       
+SQL> DELETE FROM S1 WHERE STID=1021;
+
+NOTE:
+=====
+	- to view synonym name along with table name in oracle database then we 
+use a datadictionary is "user_synonyms".
+
+EX:
+SQL> DESC USER_SYNONYMS;
+SQL> SELECT SYNONYM_NAME,TABLE_NAME FROM USER_SYNONYMS;
+
+SYNONYM_NAME		TABLE_NAME
+-----------------------------		---------------------------------------------------
+S1			COLLEGE_ENROLLMENT_DETAILS
+
+How to drop a private synonym:
+==========================
+syntax:
+======
+DROP SYNONYM <synonym name>;
+
+Ex:
+SQL> DROP SYNONYM S1;
+
+2) Public synonyms:
+==================
+	- these synonyms are created by DBA for hiding owner name and table name
+from the users.
+
+syntax:
+=======
+create public synonym <synonym name> for [owner name].<table name>;
+
+EX:
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+SQL> CREATE PUBLIC SYNONYM PS1 FOR SYSTEM.DEPT;
+Synonym created.
+
+SQL> GRANT SELECT ON PS1 TO U1;
+Grant succeeded.
+
+SQL> CONN
+Enter user-name: U1/U1
+Connected.
+
+SQL> SELECT * FROM PS1;
+
+NOTE:
+======
+	- to view all public synonyms along with table name in oracle database then
+use a datadictionary is "all_synonyms".
+
+EX:
+SQL> DESC ALL_SYNONYMS;
+SQL> SELECT TABLE_NAME,TABLE_OWNER,SYNONYM_NAME
+  2  FROM ALL_SYNONYMS WHERE TABLE_NAME='DEPT';
+
+TABLE_NAME	TABLE_OWNER	SYNONYM_NAME
+----------------------	-------------------------	---------------------------------
+DEPT		SYSTEMP		S1
+
+How to drop public synonyms:
+=========================
+syntax:
+=======
+DROP PUBLIC SYNONYM <SYNONYM NAME>;
+
+EX:
+SQL> DROP PUBLIC SYNONYM PS1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

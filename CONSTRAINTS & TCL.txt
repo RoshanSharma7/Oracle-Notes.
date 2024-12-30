@@ -1,0 +1,820 @@
+CONSTRAINTS:(03-09-2024)
+=============
+	- constraints are used to enforce unwanted data (i.e invalid data) from a table.
+	- by using constraints we will validate our data before accepting into a table.
+	- oracle provide the following six types of constraints those are,
+		1) UNIQUE
+		2) NOT NULL
+		3) CHECK
+		4) PRIMARY KEY
+		5) FOREIGN KEY(references)
+		6) DEFAULT 
+	- oracle supports the following two types constraint techniques.
+		i) column level
+		ii) table level
+i) column level:
+==============
+	- in this level constraint can be defined on each individual column wise
+in the table.
+
+syntax:
+=======
+create table <table name>(<column name1><datatype>[size] <constraint type>,
+<column name2> <datatype>[size] <constraint type>,....................);
+
+ii) table level:
+============
+	- in this level constraint can be defined after all columns definitions i.e 
+the end of the table definition.
+
+syntax:
+=======
+create table <table name>(<column name1><datatype>[size],
+<column name2> <datatype>[size],...........................................,
+<constraint type>(<column name1>,<column name2>,..................));
+
+NOTE:
+======
+	- Here table level constraints are called as " composite constraints" in database.
+
+What is composite constraint:
+=========================
+	- when we apply a constraint on multiple combination of columns in a table
+is known as "composite constraints".
+
+1) UNIQUE:
+==========
+	- to restricted duplicates but not NULLs.
+Ex:
+column level:
+===========
+SQL> CREATE TABLE TEST1(SNO NUMBER(3)UNIQUE,NAME VARCHAR2(10)UNIQUE);
+
+TESTING:
+SQL> INSERT INTO TEST1 VALUES(1,'A'); -------------> ALLOWED	
+SQL> INSERT INTO TEST1 VALUES(1,'A'); --------------> NOT ALLOWED
+SQL> INSERT INTO TEST1 VALUES(NULL,NULL); ----> ALLOWED
+SQL> INSERT INTO TEST1 VALUES(2,'B');-----------------> ALLOWED
+
+table level:
+=========
+SQL> CREATE TABLE TEST2(SNO NUMBER(2),NAME VARCHAR2(10),UNIQUE(SNO,NAME));
+
+TESTING:
+SQL> INSERT INTO TEST2 VALUES(1,'A');------ALLOWED
+SQL> INSERT INTO TEST2 VALUES(1,'A');-----NOT ALLOWED
+SQL> INSERT INTO TEST2 VALUES(1,'B');----ALLOWED
+SQL> INSERT INTO TEST2 VALUES(NULL,NULL);-----ALLOWED
+
+2) NOT NULL:
+===========
+	- to restricted nulls but allowed duplicates.
+	- it can be defined at colum level only.
+EX:
+column level:
+===========
+SQL> CREATE TABLE TEST3(SNO NUMBER NOT NULL,NAME VARCHAR2(10) NOT NULL);
+
+TESTING:
+SQL> INSERT INTO TEST3 VALUES(1,'A');-----------ALLOWED
+SQL> INSERT INTO TEST3 VALUES(1,'A');----------ALLOWED
+SQL> INSERT INTO TEST3 VALUES(NULL,NULL);------NOT ALLOWED
+
+3) CHECK:
+=========
+	- to check the values with user defined condition before accepting into a column.
+
+EX:
+column level:
+===========
+SQL> CREATE TABLE REGISTER_DETAILS
+  2  (
+  3  REGNO NUMBER(4) UNIQUE NOT NULL,
+  4  CNAME VARCHAR2(10) NOT NULL,
+  5  ENTRY_FEE NUMBER(6,2) NOT NULL CHECK(ENTRY_FEE=500),
+  6  AGE NUMBER(3) NOT NULL CHECK(AGE BETWEEN 18 AND 30),
+  7  LOC VARCHAR2(10) NOT NULL CHECK(LOC IN('HYD','MUMBAI','DELHI'))
+  8  );
+
+TESTING:
+SQL> INSERT INTO REGISTER_DETAILS VALUES(1001,'SMITH',5000,31,'HYDERABAD');---NOT ALLOWED
+SQL> INSERT INTO REGISTER_DETAILS VALUES(1001,'SMITH',500,23,'HYD');---ALLOWED
+
+table level:
+==========
+SQL> CREATE TABLE TEST4(ENAME VARCHAR2(10),SAL NUMBER(8,2),CHECK(ENAME=LOWER(ENAME) AND SAL>=15000));
+
+TESTING:
+=========
+SQL> INSERT INTO TEST4 VALUES('SMITH',14000);-----NOT ALLOWED
+SQL> INSERT INTO TEST4 VALUES('SMITH',15000);-----NOT ALLOWED
+SQL> INSERT INTO TEST4 VALUES('smith',12000);------NOT ALLOWED
+SQL> INSERT INTO TEST4 VALUES('smith',15000);------ALLOWED
+
+04-09-2024:
+===========
+4. PRIMARY KEY:
+===============
+	- it is a combination UNIQUE and NOT NULL constraint.
+	- by using primary key we can restrict duplicate values and also nulls from a table at a time.
+	- a table should contains only one primary key.
+
+EX:
+column level:
+============
+SQL> CREATE TABLE TEST5(STID NUMBER(4) PRIMARY KEY,SNAME VARCHAR2(10),
+         MAIL_ID VARCHAR2(10) PRIMARY KEY)                                                                                     
+ERROR at line 1:
+ORA-02260: table can have only one primary key
+
+solution:
+========
+SQL> CREATE TABLE TEST5(STID NUMBER(4) PRIMARY KEY,SNAME VARCHAR2(10),
+         MAIL_ID VARCHAR2(30) UNIQUE NOT NULL);
+
+TESTING:
+SQL> INSERT INTO TEST5 VALUES(1021,'ALLEN','all123@gmail.com');-------ALLOWED
+SQL> INSERT INTO TEST5 VALUES(1021,'JONES','all123@gmail.com');------NOT ALLOWED
+SQL> INSERT INTO TEST5 VALUES(1022,'JONES','joy123@gmail.com');----ALLOWED
+SQL> INSERT INTO TEST5 VALUES(NULL,'WARD',NULL);----NOT ALLOWED
+
+COMPOSITE PRIMARY KEY: (table level)
+==================================
+	- when we apply a primary key constraint on multiple combination colums in a table is 
+known as "composite primary key".
+	- in composite primary key mechanism individual columns are accepting duplicate values
+but the combination of columns are not accepting duplicate values.
+
+Ex:
+SQL> CREATE TABLE BRANCH(BCODE NUMBER(4),
+  2  BNAME VARCHAR2(10),BLOC VARCHAR2(10),
+  3  PRIMARY KEY(BCODE,BNAME));
+
+TESTING:
+SQL> INSERT INTO BRANCH VALUES(1021,'SBI','MADHAPUR');-------ALLOWED
+SQL> INSERT INTO BRANCH VALUES(1021,'SBI','SRNAGAR');----------NOT ALLOWED
+SQL> INSERT INTO BRANCH VALUES(1021,'HDFC','MADHAPUR');------ALLOWED
+
+5.FOREIGN KEY:
+==============
+	- to establish relationship between tables for taking an identity(i.e reference) from one table 
+to another table.
+
+Basic Rules:
+==========
+1. to maintain a common column in both tables.
+2. common column datatypes should be same in both tables.
+3. when we create relationship between tables then we should have primary key in one table
+and foreign key in another table but primary key and foreign keu columns must common column
+only.
+4. a primary key table is called as "parent table" and a foreign key table is called as "child table".
+5. a foreign key column is allowed the values which should contains in primary key column of 
+parent table.
+6. by default a foreign key is allowed duplicates and nulls.
+
+syntax:
+======
+<common column of child table> <datatype>[size] references <parent table name>(primary key column name);
+
+Ex:
+SQL> CREATE TABLE DEPT1(DNO NUMBER(2) PRIMARY KEY,DNAME VARCHAR2(10));(parent table)
+
+SQL> INSERT INTO DEPT1 VALUES(10,'JAVA');
+SQL> INSERT INTO DEPT1 VALUES(20,'ORACLE');
+SQL> COMMIT;
+
+SQL> CREATE TABLE EMP1(EID NUMBER(4) PRIMARY KEY,
+  2  ENAME VARCHAR2(10),DNO NUMBER(2) REFERENCES
+  3  DEPT1(DNO)); (child table)
+
+SQL> INSERT INTO EMP1 VALUES(1021,'SMITH',10);
+SQL> INSERT INTO EMP1 VALUES(1022,'JONES',10);
+SQL> INSERT INTO EMP1 VALUES(1023,'ADAMS',20);
+SQL> INSERT INTO EMP1 VALUES(1024,'MILLER',NULL);
+
+Updating NULLs with reference values of primary key column of parent table:
+===============================================================
+SQL> UPDATE EMP1 SET DNO=10 WHERE DNO IS NULL;----------ALLOWED
+SQL> UPDATE EMP1 SET DNO=20 WHERE DNO IS NULL;----------ALLOWED
+SQL> UPDATE EMP1 SET DNO=30 WHERE DNO IS NULL;----------NOT ALLOWED
+
+NOTE:
+=====
+	- Once we established relationship between tables there two rules are come into
+picture.
+
+Rule-1(Insertion rule):
+==================
+	- we cannot insert values into child table those values are not existing in primary key
+of parent table.
+		=======================
+		i.e NO PARENT = NO CHILD		
+		=======================
+EX:
+SQL> INSERT INTO EMP1 VALUES(1021,'SMITH',30)
+ERROR at line 1:
+ORA-02291: integrity constraint (MYDB4PM.SYS_C009239) violated - parent key not found
+
+Rule-2(Deletion rule):
+=================
+	- we cannot delete a row from parent table then that parent rows are having child 
+rows in child table without addressing to child.
+
+EX:
+SQL> DELETE FROM DEPT1 WHERE DNO=10
+ERROR at line 1:
+ORA-02292: integrity constraint (MYDB4PM.SYS_C009239) violated - child record found
+
+How to address to child table:
+==========================
+	- there are two rules are there to address to child table.
+		i) ON DELETE CASCADE
+		ii) ON DELETE SET NULL
+
+i) ON DELETE CASCADE:
+====================
+	- when we delete a row from a parent table then the corresponding child rows 
+are also deleted from child table automatically.
+
+Ex:
+SQL> CREATE TABLE DEPT2(DNO NUMBER(2) PRIMARY KEY,DNAME VARCHAR2(10));(parent table)
+
+SQL> INSERT INTO DEPT2 VALUES(10,'JAVA');
+SQL> INSERT INTO DEPT2 VALUES(20,'ORACLE');
+SQL> COMMIT;
+
+SQL> CREATE TABLE EMP2(EID NUMBER(4) PRIMARY KEY,
+    ENAME VARCHAR2(10),DNO NUMBER(2) REFERENCES
+    DEPT2(DNO) ON DELETE CASCADE); (child table)
+
+SQL> INSERT INTO EMP2 VALUES(1021,'SMITH',10);
+SQL> INSERT INTO EMP2 VALUES(1022,'JONES',20);
+
+TESTING:
+SQL> DELETE FROM DEPT2 WHERE DNO=20;-----ALLOWED
+
+ii) ON DELETE SET NULL:
+====================
+	- when we delete a row from a parent table then the corresponding child table  
+foreign key column values are converting into NULLS automatically.
+
+Ex:
+SQL> CREATE TABLE DEPT3(DNO NUMBER(2) PRIMARY KEY,DNAME VARCHAR2(10));(parent table)
+
+SQL> INSERT INTO DEPT3 VALUES(10,'JAVA');
+SQL> INSERT INTO DEPT3 VALUES(20,'ORACLE');
+SQL> COMMIT;
+
+SQL> CREATE TABLE EMP3(EID NUMBER(4) PRIMARY KEY,
+    ENAME VARCHAR2(10),DNO NUMBER(2) REFERENCES
+    DEPT3(DNO) ON DELETE SET NULL); (child table)
+
+SQL> INSERT INTO EMP3 VALUES(1021,'SMITH',10);
+SQL> INSERT INTO EMP3 VALUES(1022,'JONES',20);
+
+TESTING:
+SQL> DELETE FROM DEPT3  WHERE DNO=20;-----ALLOWED
+
+DATADICTIONARIES / READ ONLY TABLES:
+====================================
+	- when we are installing oracle s/w internally system is preparing some 
+pre-defined tables are called as "datadictionaries".
+	- these datadictionaries are stored the information about Tables,Constraints,
+Synonyms,Views,Materialized views,Sequences,Indexes,Cluster,Procedure,Triggers,...etc
+	- datadictionaries are supports the following two commands are "DESC",
+"SELECT" but not allowed DML operations.
+	- if we want to view all datadictionaries in oracle database then we follow the
+following syntax is,
+
+syntax:
+======
+SELECT * FROM DICT; (Dictionary-Main dictionary)
+
+Pre-defined constraint name(identity):
+===============================
+syntax:
+=======
+	<column name> <datatype>[size] <constraint type>
+
+EX:
+SQL> CREATE TABLE TEST6(SNO NUMBER(2) PRIMARY KEY,
+          NAME VARCHAR2(10) UNIQUE,FEE NUMBER(6,2) CHECK(FEE>500));
+
+	-when we apply constraints on a table columns internally system is creating
+a unique identity for each constraint to identify the type of constraint by system.
+	- if we want to view constraint name along with column name of a specific
+table in oracle database then use a datadictionary is "user_cons_columns".
+
+EX:
+SQL> DESC USER_CONS_COLUMNS;
+SQL> SELECT COLUMN_NAME,CONSTRAINT_NAME FROM USER_CONS_COLUMNS
+  2  WHERE TABLE_NAME='TEST6';
+
+COLUMN_NAME				CONSTRAINT_NAME
+---------------------------				-----------------------------
+FEE					SYS_C009256
+SNO					SYS_C009257
+NAME					SYS_C009258
+
+How to create user defined constraint name(identity):
+=============================================
+syntax:
+=======
+<column name> <datatype>[size] <constraint> <user defined constraint name> <constraint type>
+
+EX:
+SQL> CREATE TABLE TEST7(SNO NUMBER(2) CONSTRAINT SNO_PK PRIMARY KEY,
+  2  NAME VARCHAR2(10) CONSTRAINT NAME_UQ UNIQUE,
+  3  FEE NUMBER(6,2) CONSTRAINT FEE_CHK CHECK(FEE=1000));
+
+SQL> SELECT COLUMN_NAME,CONSTRAINT_NAME FROM USER_CONS_COLUMNS
+  2  WHERE TABLE_NAME='TEST7';
+
+COLUMN_NAME				CONSTRAINT_NAME
+------------------------------------			--------------------------------------------------
+FEE					FEE_CHK
+SNO					SNO_PK
+NAME					NAME_UQ
+
+How to add constraint to an existing table:
+====================================
+syntax:
+======
+ALTER TABLE <TN> ADD <CONSTRAINT> <CONSTRAINT NAME> 
+<CONSTRAINT TYPE>(COLUMN NAME);
+
+EX:
+SQL> CREATE TABLE PARENT(STID NUMBER(4),SNAME VARCHAR2(10),SFEE NUMBER(8,2));
+
+Adding Primary Key:
+==================
+SQL> ALTER TABLE PARENT ADD CONSTRAINT PK_STID PRIMARY KEY(STID);
+
+Adding Unique,Check:
+===================
+SQL> ALTER TABLE PARENT ADD CONSTRAINT UQ_SNAME UNIQUE(SNAME);
+SQL> ALTER TABLE PARENT ADD CONSTRAINT CHK_SFEE CHECK(SFEE=25000);
+
+Adding Not Null:
+=============
+syntax:
+======
+ALTER TABLE <TN> MODIFY <COLUMN NAME> <CONSTRAINT> <CONSTRAINT NAME> NOT NULL;
+
+EX:
+SQL> ALTER TABLE PARENT MODIFY SNAME CONSTRAINT NN_ENAME NOT NULL;
+
+Adding Foreign Key:
+=================
+syntax:
+=======
+ALTER TABLE <TN> ADD <CONSTRAINT> <CONSTRAINT NAME> 
+FOREIGN KEY(COMMON COLUMN OF CHILD TABLE) REFERENCES
+<PARENT TABLE NAME>(PRIMARY KEY COLUMN OF PARENT TABLE)
+ON DELETE CASCADE / ON DELETE SET NULL;
+
+EX:
+SQL> CREATE TABLE CHILD(BNAME VARCHAR2(10),STID NUMBER(4));
+
+SQL> ALTER TABLE CHILD ADD CONSTRAINT FK_STID
+  2  FOREIGN KEY(STID)REFERENCES PARENT(STID)
+  3  ON DELETE CASCADE;
+
+How to drop constraint from an existing table:
+======================================
+syntax:
+======
+ALTER TABLE <TN> DROP <CONSTRAINT> <CONSTRAINT NAME>;
+
+Dropping a Primary key:
+====================
+Case-1: With relationship:
+=====================
+SQL> ALTER TABLE PARENT DROP CONSTRAINT PK_STID CASCADE;
+
+Case-2: Without relationship:
+=======================
+SQL> ALTER TABLE PARENT DROP CONSTRAINT PK_STID;
+
+Dropping Unique,Check,Not Null:
+===========================
+SQL> ALTER TABLE PARENT DROP CONSTRAINT UQ_SNAME;
+SQL> ALTER TABLE PARENT DROP CONSTRAINT CHK_SFEE;
+SQL> ALTER TABLE PARENT DROP CONSTRAINT NN_SNAME;
+
+How to rename a constraint name:
+=============================
+syntax:
+======
+ALTER TABLE <TN> RENAME CONSTRAINT <old constraint name> to <new constraint name>;
+
+EX:
+SQL> CREATE TABLE TEST8(SNO NUMBER(2) PRIMARY KEY);
+
+SQL> SELECT COLUMN_NAME,CONSTRAINT_NAME FROM
+          USER_CONS_COLUMNS WHERE TABLE_NAME='TEST8';
+
+COLUMN_NAME				CONSTRAINT_NAME
+--------------------------------------------------			------------------------------------------------------------------------------
+SNO					SYS_C009269
+
+SQL> ALTER TABLE TEST8 RENAME CONSTRAINT SYS_C009269 TO SN_PK;
+
+SQL> SELECT COLUMN_NAME,CONSTRAINT_NAME FROM
+          USER_CONS_COLUMNS WHERE TABLE_NAME='TEST8';
+
+COLUMN_NAME				CONSTRAINT_NAME
+--------------------------------------------------			------------------------------------------------------------------------------
+SNO					SN_PK
+
+09-09-2024:
+===========
+DEFAULT constraint:
+=================
+	- it is used to assign a user defined default value to a column in the table.
+
+syntax:
+======
+	<column name> <datatype>[size] default <value>
+
+EX:
+SQL> CREATE TABLE TEST9(SNO NUMBER(3),LOC VARCHAR2(10) DEFAULT 'HYD');
+
+TESTING:
+SQL> INSERT INTO TEST9(SNO,LOC)VALUES(1,'DELHI');
+SQL> INSERT INTO TEST9(SNO)VALUES(2);
+
+How to assign a default value to an existing table:
+==========================================
+syntax:
+======
+ALTER TABLE <TN> MODIFY <COLUMN NAME> DEFAULT <value>;
+
+EX:
+SQL> CREATE TABLE TEST10(SNAME VARCHAR2(10),SFEE NUMBER(6,2));
+SQL> ALTER TABLE TEST10 MODIFY SFEE DEFAULT 5000;
+
+TESTING:
+SQL> INSERT INTO TEST10(SNAME)VALUES('JAMES');
+SQL> SELECT * FROM TEST10;
+
+NOTE:
+=====
+	- to view column name along with default value from a specific table in oracle
+then we use a datadictionary is "user_tab_columns".
+
+EX:
+SQL> DESC USER_TAB_COLUMNS;
+SQL> SELECT COLUMN_NAME,DATA_DEFAULT FROM USER_TAB_COLUMNS
+  2  WHERE TABLE_NAME='TEST10';
+
+COLUMN_NAME		DATA_DEFAULT
+-----------------------------------	---------------------------------------------
+SFEE			5000
+
+How to remove a default value from an existing table:
+============================================
+SQL> ALTER TABLE TEST10 MODIFY SFEE DEFAULT NULL;
+
+SQL> SELECT COLUMN_NAME,DATA_DEFAULT FROM USER_TAB_COLUMNS
+  2  WHERE TABLE_NAME='TEST10';
+
+COLUMN_NAME		DATA_DEFAULT
+-----------------------------------	---------------------------------------------
+SFEE			NULL
+==========================================================================
+TRANSACTION CONTROL LANGUAGE(TCL):
+====================================
+	What is a Transaction:
+	===================
+		- to perform some operation over database.
+		- these transactions are controlling by user with the help of 
+	TCL commands are,
+		i) Commit
+		ii) Rollback
+		iii) Savepoint
+i) Commit:
+=========
+	- to make a transaction is permanent.
+	- there are two types of commit transactions in database.
+		i) Implicit commit
+		===============
+			- these transaction are committe by system.
+				Ex: DDL commands
+		ii) Explicit commit:	
+		=================
+			- these transactions are committed by user.
+				Ex: DML commands
+		syntax:
+		=======
+				COMMIT;
+
+EX:
+SQL> CREATE TABLE TEST11(SNO NUMBER(2),NAME VARCHAR2(10));
+
+TESTING:
+SQL> INSERT INTO TEST11 VALUES(1,'A');
+SQL> COMMIT;
+
+SQL> UPDATE TEST11 SET NAME='B' WHERE SNO=1;
+DQL> COMMIT;
+
+SQL> DELETE FROM TEST11 WHERE SNO=1;
+SQL> COMMIT;
+		(OR)
+SQL> INSERT INTO TEST11 VALUES(1,'A');
+SQL> UPDATE TEST11 SET NAME='B' WHERE SNO=1;
+SQL> DELETE FROM TEST11 WHERE SNO=1;
+SQL> COMMIT;
+
+ii) Rollback:
+==========
+	- to a cancel a transaction.
+	- but once a transaction is committed then we cannot rollback.
+EX:
+SQL> CREATE TABLE TEST11(SNO NUMBER(2),NAME VARCHAR2(10));
+
+TESTING:
+SQL> INSERT INTO TEST11 VALUES(1,'A');
+SQL> ROLLBACK;
+
+SQL> UPDATE TEST11 SET NAME='B' WHERE SNO=1;
+DQL> ROLLBACK;
+
+SQL> DELETE FROM TEST11 WHERE SNO=1;
+SQL> ROLLBACK;
+		(OR)
+SQL> INSERT INTO TEST11 VALUES(1,'A');
+SQL> UPDATE TEST11 SET NAME='B' WHERE SNO=1;
+SQL> DELETE FROM TEST11 WHERE SNO=1;
+SQL> ROLLBACK;
+
+iii) SAVEPOINT:
+==============
+	- to rollback a specific row / rows from a table.
+
+How to create a savepoint:
+=======================
+syntax:
+=======
+savepoint <pointer name>;
+
+How to rollback a savepoint:
+========================
+syntax:
+=======
+rollback to <savepointer name>;
+
+DEMO_TABLE:
+============
+SQL> SELECT * FROM TEST11;
+
+       SNO NAME
+---------- ----------
+         1 A
+         2 B
+         3 C
+         4 D
+
+EX:
+SQL> DELETE FROM TEST11 WHERE SNO=1;
+SQL> SAVEPOINT P1;
+SQL> DELETE FROM TEST11 WHERE SNO=3;
+
+CASE1: 
+=======
+SQL> ROLLBACK TO P1; ( 3rd row will restore )
+
+CASE-2:
+=======
+SQL> COMMIT / ROLLBACK;
+
+
+EX:
+SQL> DELETE FROM TEST11 WHERE SNO=1;
+SQL> SAVEPOINT P1;
+SQL> DELETE FROM TEST11 WHERE SNO IN(2,4);
+
+CASE1: 
+=======
+SQL> ROLLBACK TO P1; ( 2nd,4th row will restore )
+
+CASE-2:
+=======
+SQL> COMMIT / ROLLBACK;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+
+				
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

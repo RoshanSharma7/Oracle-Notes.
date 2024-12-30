@@ -1,0 +1,217 @@
+DATABASE SECURITY: (16-09-2024)
+==================
+	- all databases are supporting the following two mechanism for providing security
+to database.
+		1. Authentication:
+		================
+			- to check user credentails(username & password) before login
+		or connect to oracle server.
+			- these permissions are giving by DBA only.
+
+How to create a new username and password:
+======================================
+syntax:
+=======
+CREATE USER <USERNAME> IDENTIFIED BY <PASSWORD>;
+
+EX:
+> go to open sqlplus 
+	Enter user-name: SYSTEM/TIGER
+	connected.
+
+SQL> CREATE USER U1 IDENTIFIED BY U1;
+User created.
+
+SQL> CONN
+Enter user-name: U1/U1
+ERROR:
+ORA-01045: user U1 lacks CREATE SESSION privilege; logon denied
+	- If a user (u1) want to connect to oracle database server then the user(u1) is required 
+authorization permission.
+
+What is Authorization:
+==================
+	- to give permission to user to perform some operations over database.
+	- these permissions are also giving by DBA by using "DCL" commands.
+			i) GRANT
+			II) REVOKE
+
+i) GRANT:
+========
+	- to give authorization permissions to users.
+syntax:
+=======
+GRANT <PRIVILEGE NAME> TO <USERNAME>;
+
+II) REVOKE:
+==========
+	- to cancel permissions of user.
+
+syntax:
+=======
+REVOKE  <PRIVILEGE NAME> FROM <USERNAME>;
+
+PRIVILEGE:
+=========
+	- it is a right (or) permission to give to users.
+	- there are two types of privileges are,
+		1. System privileges
+		2. Object privileges
+
+1. System privileges:
+=================
+	- these privieges are give by DBA only.
+	Ex: connect,create table,unlimited tablespace,create index,create sequecne,....etc.
+
+syntax:
+======
+GRANT <system privilege name> TO <user>;
+
+EX:
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+SQL> GRANT CONNECT TO U1;-------------------------> for connecting to oracle server
+SQL> GRANT CREATE TABLE TO U1; ----------------> for create new table
+SQL> GRANT UNLIMITED TABLESPACE TO U1; -----> for inserting data
+
+SQL> CONN
+Enter user-name: U1/U1
+Connected.
+
+SQL> CREATE TABLE TEST(SNO NUMBER(10),NAME VARCHAR2(10));
+SQL> INSERT INTO TEST VALUES(1,'ADAMS');
+SQL> UPDATE TEST SET SNO=101 WHERE SNO=1;
+SQL> DELETE FROM TEST WHERE SNO=101;
+SQL> SELECT * FROM TEST;
+
+How to cancel "connect" permission of a user:
+======================================
+syntax:
+=======
+REVOKE <system privilege name> FROM <username>;
+
+EX:
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+SQL> REVOKE CONNECT FROM U1;
+Revoke succeeded.
+
+SQL> CONN
+Enter user-name: U1/U1
+ERROR:
+ORA-01045: user U1 lacks CREATE SESSION privilege; logon denied
+
+2. Object privileges:
+=================
+	- these privileges are giving by DBA and also USER.
+		Ex: SELECT,INSERT,UPDATE,DELETE (or) "ALL" keyword.
+syntax:
+=======
+GRANT <object privilege name> ON <object name / table name> TO <username>;
+
+CASE-1: DBA TO USER:
+====================
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+SQL> GRANT SELECT,INSERT,UPDATE,DELETE ON DEPT TO U1;
+
+SQL> CONN
+Enter user-name: U1/U1
+Connected.
+
+SQL> SELECT * FROM SYSTEM.DEPT;------> allowed
+SQL> INSERT INTO SYSTEM.DEPT VALUES(30,'OPERATIONS','HYD');----allowed
+SQL> UPDATE SYSTEM.DEPT SET LOC='HYD' WHERE DEPTNO=20;----allowed
+SQL> DELETE FROM SYSTEM.DEPT WHERE DEPTNO=10;-----allowed
+
+Case-2: USER to USER:
+====================
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+
+SQL> CREATE USER U2 IDENTIFIED BY U2;
+User created.
+
+SQL> GRANT CONNECT,CREATE TABLE,UNLIMITED TABLESPACE TO U2;
+Grant succeeded.
+
+SQL> CONN
+Enter user-name: U1/U1
+Connected.
+
+SQL> GRANT SELECT ON SYSTEM.DEPT TO U2;
+ERROR at line 1:
+ORA-01031: insufficient privileges
+
+	- If a user(u1) want to give object privileges to another user(u2) then user(u1)
+should take permissions from DBA with "with grant option" statement otherwise user(u1)
+will not give object privileges to user(u2).
+
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+SQL> GRANT SELECT ON DEPT TO U1 WITH GRANT OPTION.
+
+SQL> CONN
+Enter user-name: U1/U1
+Connected.
+
+SQL> GRANT SELECT ON SYSTEM.DEPT TO U2;------ALLOWED
+
+How to cancel object privileges from a user:
+======================================
+syntax:
+=======
+REVOKE <privilege name> ON <object name / table name> FROM <username>;
+
+EX:
+SQL> CONN
+Enter user-name: SYSTEM/TIGER
+Connected.
+
+SQL> REVOKE SELECT ON DEPT FROM U1;
+Revoke succeeded.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+

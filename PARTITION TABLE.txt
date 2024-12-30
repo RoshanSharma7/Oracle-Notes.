@@ -1,0 +1,189 @@
+PARTITION TABLE: (19-09-2024)
+================
+	- Generally partitions are created on very large scale data tables for dividing multiple
+parts and each part is called as a partition.
+	- oracle supports the following three types of partitions.
+		1. Range partition
+		2. List partition
+		3. Hash partition
+
+How to call a particular partition from a table:
+=======================================
+syntax:
+=======
+SELECT * FROM <TN> PARTITION(PARTITION NAME);
+
+1. Range partition:
+================
+	- when we creates a partition table based on a particular range value is known as 
+Range partition.
+
+syntax:
+=======
+create table <table name>(<column name1> <datatype>[size],...............................................)
+partition by range(key column name)
+(
+partition <partition name1> values less than(value),
+partition <partition name2> values less than(value),
+........................................................................................,
+........................................................................................,
+);
+
+EX:
+SQL> CREATE TABLE TEST90(STID NUMBER(4),SNAME VARCHAR2(10),SFEE NUMBER(6,2))
+  2  PARTITION BY RANGE(SFEE)
+  3  (
+  4  PARTITION P1 VALUES LESS THAN(1000),
+  5  PARTITION P2 VALUES LESS THAN(1500),
+  6  PARTITION P3 VALUES LESS THAN(3000)
+  7  );
+
+TESTING:
+SQL> INSERT INTO TEST90 VALUES(1021,'SMITH',1800);
+SQL> INSERT INTO TEST90 VALUES(1022,'ALLEN',850);
+SQL> INSERT INTO TEST90 VALUES(1023,'JONES',1800);
+
+Calling a particular partition from a table:
+==================================
+SQL> SELECT * FROM TEST90 PARTITION(P1);
+
+2) List partition:
+=============
+	- when we created a partition table based on the list of items/values.
+syntax:
+=======
+create table <table name>(<column name1> <datatype>[size],...............................................)
+partition by list(key column name)
+(
+partition <partition name1> values (v1,v2,v3,..........),
+partition <partition name2> values (v1,v2,v3,...........),
+........................................................................................,
+........................................................................................,
+partition others values(default)
+);
+
+EX:
+SQL> CREATE TABLE TEST91(CCODE NUMBER(5),CNAME VARCHAR2(10))
+  2  PARTITION BY LIST(CNAME)
+  3  (
+  4  PARTITION P1 VALUES('ORACLE','MYSQL'),
+  5  PARTITION P2 VALUES('JAVA','.NET','PYTHON'),
+  6  PARTITION OTHERS VALUES(DEFAULT)
+  7  );
+
+TESTING:
+SQL> INSERT INTO TEST91 VALUES(10001,'C');
+SQL> INSERT INTO TEST91 VALUES(10002,'ORACLE');
+SQL> INSERT INTO TEST91 VALUES(10003,'JAVA');
+
+Calling a particular partition from a table:
+==================================
+SQL> SELECT * FROM TEST90 PARTITION(OTHERS);
+
+3) Hash Partition:
+==============
+	- these partitions are created by system by default.
+
+syntax:
+======
+create table <table name>(<column name1> <datatype>[size],...............................................)
+partition by hash(key column name) partitions <number>;
+
+EX:
+SQL> CREATE TABLE TEST92(SNO NUMBER(3),PRICE NUMBER(6,2))
+  2  PARTITION BY HASH(PRICE)PARTITIONS 5;
+
+NOTE:
+======
+	- to view all partitions of a table in oracle database then use a datadictionary is
+"user_tab_partitions".
+
+EX:
+SQL> DESC USER_TAB_PARTITIONS;
+SQL> SELECT PARTITION_NAME  FROM USER_TAB_PARTITIONS
+  2  WHERE TABLE_NAME='TEST92';
+
+PARTITION_NAME
+--------------------------------------------------------------------------------------------------------------------------------
+SYS_P5182
+SYS_P5183
+SYS_P5184
+SYS_P5185
+SYS_P5186
+
+TESTING:
+SQL> INSERT INTO TEST92 VALUES(1,65.25);
+SQL> INSERT INTO TEST92 VALUES(2,125.25);
+SQL> INSERT INTO TEST92 VALUES(3,650.12);
+
+Calling a particular partition:
+=======================
+SQL> SELECT * FROM TEST92 PARTITION(SYS_P5182);
+
+How to add a new partition to an existing table:
+=======================================
+syntax:
+======
+ALTER TABLE <TN> ADD PARTITION <PARTITION NAME> VALUES LESS THAN(VALUE);
+
+EX:
+SQL> ALTER TABLE TEST90 ADD PARTITION P4 VALUES LESS THAN(4000);
+
+How to drop / delete a partition from an existing table:
+=============================================
+syntax:
+=======
+ALTER TABLE <TN> DROP PARTITION <PARTITION NAME>;
+
+EX:
+SQL> ALTER TABLE TEST90 DROP PARTITION P1;
+
+NOTE:
+=====
+	- if we want to know a table is partitioned or not in oracle database then use 
+a datadictionary is "user_tables".
+
+EX:
+SQL> DESC USER_TABLES;
+SQL> SELECT PARTITIONED FROM USER_TABLES WHERE TABLE_NAME='EMP';
+
+PAR
+-------
+NO
+
+SQL> SELECT PARTITIONED FROM USER_TABLES WHERE TABLE_NAME='TEST90';
+
+PAR
+-------
+YES
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

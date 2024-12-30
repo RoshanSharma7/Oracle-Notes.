@@ -1,0 +1,424 @@
+EXCEPTION HANDLING: (08-10-2024)
+===================
+	What is an Exception?
+	===================
+		- it is a runtime error / execution error.
+
+	What is an Exception Handling?
+	==========================
+		- to avoid abnormal terimination of a program execution process and display
+user friendly message to client application.
+	
+	- PL/SQL supports the following two types of exceptions those are,
+		i) Pre - defined exceptions
+		ii) User - defined exceptions
+
+i) Pre - defined exceptions:
+======================
+	- PL/SQL supports the following pre-defined exception names are,
+	Ex: no_data_found,too_many_rows,zero_divide,cursor_already_open,invalid_cursor,
+	      value_error,.................etc
+
+no_data_found:
+============
+	- when our required row is not found in a table then oracle server returns 
+a runtime error is "no data found".
+
+EX:
+SQL> DECLARE
+  2  v_DNAME VARCHAR2(10);
+  3  BEGIN
+  4  SELECT DNAME INTO v_DNAME FROM DEPT WHERE DEPTNO=&DEPTNO;
+  5  DBMS_OUTPUT.PUT_LINE(v_DNAME);
+  6  END;
+  7  /
+
+TESTING:
+========
+Enter value for deptno: 20
+RESEARCH
+
+SQL> /
+Enter value for deptno: 80
+ERROR at line 1:
+ORA-01403: no data found
+ORA-06512: at line 4
+	- To handle the above exception oracle server providing a pre-defined exception
+name is "no_data_found".
+
+Handling an exception by using "no_data_found":
+========================================
+SQL> DECLARE
+  2  v_DNAME VARCHAR2(10);
+  3  BEGIN
+  4  SELECT DNAME INTO v_DNAME FROM DEPT WHERE DEPTNO=&DEPTNO;
+  5  DBMS_OUTPUT.PUT_LINE(v_DNAME);
+  6  EXCEPTION
+  7  WHEN NO_DATA_FOUND THEN
+  8  DBMS_OUTPUT.PUT_LINE('RECORD IS NOT FOUND.PLZ TRY AGAIN!!!!!');
+  9  END;
+ 10  /
+
+TESTING:
+========
+Enter value for deptno: 10
+ACCOUNTING
+
+SQL> /
+Enter value for deptno: 70
+RECORD IS NOT FOUND.PLZ TRY AGAIN!!!!!
+
+ZERO_DIVIDE:
+===========
+	- when we perform division with zero then oracle server returns a runtime error
+is "divisor is equal to zero".
+
+EX:
+SQL> DECLARE
+  2  X NUMBER(4);
+  3  Y NUMBER(4);
+  4  Z NUMBER(6);
+  5  BEGIN
+  6  X:=&X;
+  7  Y:=&Y;
+  8  Z:=X/Y;
+  9  DBMS_OUTPUT.PUT_LINE(Z);
+ 10  END;
+ 11  /
+
+TESTING:
+Enter value for x: 10
+Enter value for y: 2
+5
+
+SQL> /
+Enter value for x: 10
+Enter value for y: 0
+ERROR at line 1:
+ORA-01476: divisor is equal to zero
+ORA-06512: at line 8
+	- To handle the above exception oracle server providing a pre-defined exception
+name is "zero_divide".
+
+Handling an exception by using "zero_divide":
+========================================
+SQL> DECLARE
+  2  X NUMBER(4);
+  3  Y NUMBER(4);
+  4  Z NUMBER(6);
+  5  BEGIN
+  6  X:=&X;
+  7  Y:=&Y;
+  8  Z:=X/Y;
+  9  DBMS_OUTPUT.PUT_LINE(Z);
+ 10  EXCEPTION
+ 11  WHEN ZERO_DIVIDE THEN
+ 12  DBMS_OUTPUT.PUT_LINE('SECOND NUMBER SHOULD NOT BE ZERO');
+ 13  END;
+ 14  /
+
+TESTING:
+=========
+Enter value for x: 10
+Enter value for y: 5
+2
+
+SQL> /
+Enter value for x: 10
+Enter value for y: 0
+SECOND NUMBER SHOULD NOT BE ZERO
+
+17-10-2024:
+===========
+SQLCODE & SQLERRM:
+====================
+	- these are pre-defined properties in oracle which will use to handle exceptions in 
+pl/sql block.when we use these two properties in exception block then we must use "others"
+exception name in exception block.
+		SQLCODE : it will display exception number.
+		SQLERRM : it will display exception message.
+
+EX:
+SQL> DECLARE
+    X NUMBER(4);
+    Y NUMBER(4);
+    Z NUMBER(6);
+    BEGIN
+    X:=&X;
+    Y:=&Y;
+    Z:=X/Y;
+    DBMS_OUTPUT.PUT_LINE(Z);
+   EXCEPTION
+   WHEN OTHERS THEN
+   DBMS_OUTPUT.PUT_LINE(SQLCODE);
+   DBMS_OUTPUT.PUT_LINE(SQLERRM);
+   END;
+  /
+
+TESTING:
+Enter value for x: 10
+Enter value for y: 2
+5
+
+SQL> /
+Enter value for x: 10
+Enter value for y: 0
+
+-1476
+ORA-01476: divisor is equal to zero
+PL/SQL procedure successfully completed.
+
+ii) User - defined exceptions:
+=========================
+	- when we create our own exception name and raise an explicitly is known as 
+user-defined exception.
+	- to create user defined exception name then we follow the following 3 steps are,
+
+step1: Declare user defined exception name:
+======================================
+syntax:
+=======
+	<user defined exception name> Exception;
+
+step2: Raise a user defined exception name:
+======================================
+i) Raise:
+=======
+	- to raise and handle an exception in the program.
+syntax:
+=======
+	raise <user defined exception name>;
+
+ii) Raise_Application_Error(number,message):
+=======================================
+	- to raise an exception but not handle an exception.
+		Number : it return user defined exception number.
+			it must be -20000 to -20999.
+		Message : it return used define exception message.
+syntax:
+======
+	raise_application_error(number,message);
+
+step3: Handling an exception by using user-defined exception name:
+==========================================================
+syntax:
+======
+	exception
+	when <user defined exception name> then
+	< statements >;
+	end.
+
+EX:
+SQL> DECLARE
+  2  X NUMBER(5);
+  3  Y NUMBER(5);
+  4  Z NUMBER(10);
+  5  EX EXCEPTION; --------------------> (1)
+  6  BEGIN
+  7  X:=&X;
+  8  Y:=&Y;
+  9  IF Y=0 THEN
+ 10  RAISE EX; -------------------------------> (2)
+ 11  ELSE
+ 12  Z:=X/Y;
+ 13  DBMS_OUTPUT.PUT_LINE(Z);
+ 14  END IF;
+ 15  EXCEPTION
+ 16  WHEN EX THEN------------------------> (3)
+ 17  DBMS_OUTPUT.PUT_LINE('SECOND NUMBER NOT BE ZERO');
+ 18  END;
+ 19  /
+
+TESTING:
+==========
+Enter value for x: 10
+Enter value for y: 2
+5
+
+SQL> /
+Enter value for x: 10
+Enter value for y: 0
+SECOND NUMBER NOT BE ZERO
+
+Using "raise_application_error()" statement:
+=====================================
+SQL> DECLARE
+  2  X NUMBER(5);
+  3  Y NUMBER(5);
+  4  Z NUMBER(10);
+  5  EX EXCEPTION;
+  6  BEGIN
+  7  X:=&X;
+  8  Y:=&Y;
+  9  IF Y=0 THEN
+ 10  RAISE EX;
+ 11  ELSE
+ 12  Z:=X/Y;
+ 13  DBMS_OUTPUT.PUT_LINE(Z);
+ 14  END IF;
+ 15  EXCEPTION
+ 16  WHEN EX THEN
+ 17  RAISE_APPLICATION_ERROR(-20478,'SECOND NUMBER SHOULD NOT BE ZERO');
+ 18  END;
+ 19  /
+
+TESTING:
+==========
+Enter value for x: 10
+Enter value for y: 5
+2
+
+SQL> /
+Enter value for x: 10
+Enter value for y: 0
+ERROR at line 1:
+ORA-20478: SECOND NUMBER SHOULD NOT BE ZERO
+ORA-06512: at line 17
+
+EXCEPTION PROPAGATION:
+========================
+	- Generally exceptions are handling under execution block but not in declaration
+block.if we want to handle exceptions under declaration block then we use a mechanism is 
+called as "exception propagation".
+	- To implement exception propagation then we should use "nested pl/sql block" in the 
+program.
+
+Ex:
+SQL> DECLARE
+  2  X VARCHAR2(4):='SMITH';
+  3  BEGIN
+  4  DBMS_OUTPUT.PUT_LINE(X);
+  5  EXCEPTION
+  6  WHEN VALUE_ERROR THEN
+  7  DBMS_OUTPUT.PUT_LINE('INVALID THE SIZE OF VARIABLE');
+  8  END;
+  9  /
+ERROR at line 1:
+ORA-06502: PL/SQL: numeric or value error: character string buffer too small
+ORA-06512: at line 2
+
+	- To handle the above exception then we should implement "nested pl/sql block".
+
+Solution:
+========
+    BEGIN
+    DECLARE
+    X VARCHAR2(4):='SMITH';
+    BEGIN
+    DBMS_OUTPUT.PUT_LINE(X);
+    EXCEPTION
+    WHEN VALUE_ERROR THEN
+    DBMS_OUTPUT.PUT_LINE('INVALID THE SIZE OF VARIABLE');
+    END;
+    EXCEPTION 
+    WHEN VALUE_ERROR THEN
+    DBMS_OUTPUT.PUT_LINE('STRING LENGTH IS MORE THAN TO THE SIZE OF A VARIABLE');
+    END;
+    /
+STRING LENGTH IS MORE THAN TO THE SIZE OF A VARIABLE
+PL/SQL procedure successfully completed.
+
+	- In the above nested pl/sql block outer exception block is handling an exception which was raised
+in declaration block but not inner exception block.this mechanism is called as "exception propagation".
+
+How to use multiple exception names in a single pl/sql block:
+====================================================
+EX:
+SQL> DECLARE
+  2  X NUMBER(3);
+  3  Y NUMBER(3);
+  4  Z NUMBER(10);
+  5  BEGIN
+  6  X:=&X;
+  7  Y:=&Y;
+  8  Z:=X/Y;
+  9  DBMS_OUTPUT.PUT_LINE(Z);
+ 10  EXCEPTION
+ 11  WHEN ZERO_DIVIDE THEN
+ 12  DBMS_OUTPUT.PUT_LINE('SECOND NUMBER SHOULD NOT BE ZERO');
+ 13  WHEN VALUE_ERROR THEN
+ 14  DBMS_OUTPUT.PUT_LINE('INVALID THE SIZE OF VARIABLE');
+ 15  END;
+ 16  /
+
+TESTING:
+Enter value for x: 10
+Enter value for y: 2
+5
+
+SQL> /
+Enter value for x: 10
+Enter value for y: 0
+SECOND NUMBER SHOULD NOT BE ZERO
+
+SQL> /
+Enter value for x: 10
+Enter value for y: 2547
+INVALID THE SIZE OF VARIABLE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

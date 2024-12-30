@@ -1,0 +1,127 @@
+LOCKS: (26-09-2024)
+======
+	- to prevent unauthorized accessing for our resource.
+	- oracle supports the following two types of locking mechanisms.
+		1) Row level locking
+		2) Table level locking
+
+1) Row level locking:
+=================
+	- in this level oracle server is locking the rows from a table.
+	- these are again two types.
+		i) single row locking
+		ii) multiple rows locking
+
+i) single row locking:
+==================
+	- in this level oracle server is locking a single row from a table.
+
+EX:
+	User-1					User-2
+	======					======
+sql> conn system/tiger			sql> conn mydb4pm/myb4pm
+
+sql> update mydb4pm.emp set sal=1100		sql> update emp set sal=2200
+where empno=7369;				where empno=7369;
+[ Here 7369 row is locked ]			[ we cannot perform update operation]
+
+sql> commit / rollback;			1 row updated.
+[ For releasing lock ]
+
+
+ii) multiple rows locking:
+=====================
+	- in this level oracle server is locking multiple rows from a table.
+	- if we want to lock multiple rows from a table then we must use 
+	"for update" clause in SELECT command.
+
+EX:
+	User-1					User-2
+	======					======
+sql> conn system/tiger			sql> conn mydb4pm/myb4pm
+
+sql> select * from mydb4pm.emp		sql> update emp set sal=3300
+where deptno=10 for update;			where deptno=10;
+[ Here deptno 10 rows are locked]		[ we cannot perform update operation]
+
+sql> commit / rollback;			3 rows updated.
+[ For releasing lock ]
+
+Dead lock:
+=========
+	- both users are waiting for their resources.
+
+EX:
+	User-1					User-2
+	======					======
+sql> conn system/tiger			sql> conn mydb4pm/myb4pm
+
+sql> update mydb4pm.emp set sal=4400		sql> update emp set sal=5500
+where empno=7566;				where empno=7788;
+[ Here 7566 row locked ]			[ Here 7788 row is locked ]
+
+sql> update mydb4pm.emp set 		sql> update emp set sal=7700
+sal=6600 where empno=7788;			where empno=7566;
+[ we cannot perform update operation]		[ we cannot perform update operation]
+
+ERROR at line 1:
+ORA-00060: deadlock detected while 
+waiting for resource.
+
+sql> commit / rollback;			1 row updated.
+[ for releasing dead lock ]
+
+2) Table level locking:
+==================
+	- in this oracle server is locking the entire table.
+		i) shared lock
+		ii) execlusive lock
+
+i) shared lock:
+=============
+	- In this locking both users can lock a table.
+syntax:
+=======
+	lock table <table name> in share mode;
+
+EX:
+	User-1					User-2
+	======					======
+sql> conn system/tiger			sql> conn mydb4pm/myb4pm
+
+sql> lock table mydb4pm.emp in share mode;	sql> lock table emp in share mode;
+Table(s) Locked.				Table(s) Locked.
+[ we cannot perform DML operations]		[ we cannot perform DML operations]
+
+sql> update mydb4pm.emp set sal=9900		sql> update emp set sal=8800
+where empno=7900;				where empno=7788;
+[ not allowed ]				[ not allowed ]
+
+sql> commit / rollback;			1 row updated.
+[ for releasing lock ];
+
+ii) Exclusive lock:
+===============
+	- in this locking mechanism any one user can lock the table.
+
+syntax:
+=======
+	lock table <table name> in exclusive mode;
+
+EX:
+	User-1					User-2
+	======					======
+sql> conn system/tiger			sql> conn mydb4pm/myb4pm
+
+sql> lock table mydb4pm.emp in exclusive  mode;	sql> lock table emp in exclusive mode;
+Table(s) Locked.				[ we cannot lock a table]	
+
+sql> commit / rollback;			Table(s) Locked.
+[ for releasing lock ] 	
+				
+
+
+
+
+
+

@@ -1,0 +1,652 @@
+SUBQUERY / NESTED QUERY: (10-09-2024)
+=========================
+	- a query inside another query is known as "subquery / nested query".
+syntax:
+======
+select * from <table name> where <condition>(select * from.....(select * from....));
+	
+	- a subquery statement is having two more queries those are,
+		i) Inner query / Sub query / Child query
+		ii) Outer query / Main query / Parent query
+	- as per the execution process of subquery statement it again classified 
+into two types.
+		1. Non-corelated subquery:
+		=======================
+			- In this mechanism first inner query is executed and
+		later outer will execute.
+
+		2. Co-related subquery:
+		====================
+			- In this mechanism first outer query is executed and
+		later inner will execute.
+
+1. Non-corelated subquery:
+=======================
+	- there are four types of subqueries in non-corelated mechanism.
+		i) Singe row subquery 	
+		ii) Multiple row subquery
+		iii) Multiple column subquery
+		iv) Inline view 
+
+i) Singe row subquery :
+===================	
+	- when a subquery return  a single value is known as SRSQ.
+	- in SRSQ we will use the following operators are " = , < , > , <= , >= , != (or) < > ".
+
+Ex:
+waq to display employees details who are earning the first highest salary in the 
+organization?
+		========================================
+		subquery statement  = outer query+inner query
+		=========================================
+step1: Inner query:
+================
+SQL> SELECT MAX(SAL) FROM EMP;----------> 5000
+
+step2: Outer query:
+=================
+SQL> SELECT * FROM EMP WHERE <use inner query return value column name>=(Inner query);
+
+step3: subquery statement  = (outer query+inner query):
+================================================
+SQL> SELECT * FROM EMP WHERE SAL=(SELECT MAX(SAL) FROM EMP);
+
+EX:
+waq to display the senior most employees details from emp table?
+SQL> SELECT * FROM EMP WHERE HIREDATE=(SELECT MIN(HIREDATE) FROM EMP);
+
+EX:
+waq to find out the second highest salary from emp table?
+SQL> SELECT MAX(SAL) FROM EMP WHERE SAL<(SELECT MAX(SAL) FROM EMP);
+
+  MAX(SAL)
+-------------------
+      3000
+
+EX:
+waq to display employees details who are getting the 2nd highest salary from emp
+table?
+SQL> SELECT * FROM EMP WHERE SAL=(SELECT MAX(SAL) FROM EMP WHERE SAL<(SELECT MAX(SAL) FROM EMP));
+
+EX:
+waq to display employees whose salary is more than the maximum salary of "SALESMAN"?
+SQL> SELECT * FROM EMP WHERE SAL>(SELECT MAX(SAL) FROM EMP WHERE JOB='SALESMAN');
+
+EX:
+waq to find out 3rd highest salary from emp table?
+SQL> SELECT MAX(SAL) FROM EMP WHERE SAL<
+  2  (SELECT MAX(SAL) FROM EMP WHERE SAL<
+  3  (SELECT MAX(SAL) FROM EMP));
+
+  MAX(SAL)
+----------
+      2975
+
+EX:
+waq to display employees details who are getting 3rd highest salary?
+SQL> SELECT * FROM EMP WHERE SAL=
+  2  (SELECT MAX(SAL) FROM EMP WHERE SAL<
+  3  (SELECT MAX(SAL) FROM EMP WHERE SAL<
+  4  (SELECT MAX(SAL) FROM EMP)));
+
+	Nth		N+1
+	===		====
+	1ST		2Q
+	2ND		3Q
+	3RD		4Q
+	
+		
+		
+	30TH		31Q
+
+	
+	150TH		151Q
+
+How to overcome the above problem?
+================================
+ii) Multiple row subquery: (11-09-2024)
+======================
+	- when a subquery return more than one value is known as MRSQ.
+	- in MRSQ we will use the following operators are "IN,ANY,ALL".
+
+Ex:
+waq to display employees whose jobs are same as the employee "SMITH","MARTIN" jobs
+in emp table?
+SQL> SELECT * FROM EMP WHERE JOB IN(SELECT JOB FROM EMP
+  2  WHERE ENAME IN('SMITH','MARTIN'));
+
+Ex:
+waq to display employees who are getting minimum and maximum salary from emp table?
+SQL> SELECT * FROM EMP WHERE SAL IN
+  2  (
+  3  SELECT MIN(SAL) FROM EMP
+  4  UNION
+  5  SELECT MAX(SAL) FROM EMP
+  6  );
+
+ANY operator:
+============
+	- it return a value if any one condition is true.
+
+	Ex:
+		X(25) >ANY(10,20,30)
+			I)X=09 =====> FALSE
+			II) X=45 ====> TRUE
+			III) X=25 ====> TRUE
+
+
+ALL operator:
+============
+	- it return a value if all conditions are true.
+
+	Ex:
+		X(25) >ALL(10,20,30)
+			I)X=09 =====> FALSE
+			II) X=45 ====> TRUE
+			III) X=25 ====> FALSE
+
+Ex:
+waq to display employees whose salary is more than any SALESMAN salary?
+SQL> SELECT * FROM EMP WHERE SAL >ANY(SELECT SAL FROM EMP WHERE JOB='SALESMAN');
+
+Ex:
+waq to display employees whose salary is more than all SALESMAN salaries?
+SQL> SELECT * FROM EMP WHERE SAL >ALL(SELECT SAL FROM EMP WHERE JOB='SALESMAN');
+
+	ANY operator			ALL operator
+	===========			============
+	X=ANY(<list of values>)		X=ALL(<list of values>)
+	X<ANY(<list of values>)		X<ALL(<list of values>)
+	X<=ANY(<list of values>)		X<=ALL(<list of values>)
+	X>ANY(<list of values>)		X>ALL(<list of values>)
+	X>=ANY(<list of values>)		X>=ALL(<list of values>)
+	X!=ANY(<list of values>)		X!=ALL(<list of values>)
+
+III) Multiple column subquery:
+==========================
+	- multiple columns values of inner query is comparing with multiple columns
+values of outer query is known as MCSQ.
+
+syntax:
+======
+select * from <table name> where(<column name1>,<column name2>,..................) IN (select <column name1>,<column name2>,................from <table name>);
+
+Ex:
+waq to display employees whose JOB,MGR are same as the JOB,MGR of the employee "MARTIN"?
+SQL> SELECT * FROM EMP WHERE(JOB,MGR) IN(SELECT JOB,MGR FROM EMP WHERE ENAME='MARTIN');
+
+Ex:
+waq to display employees who are getting maximum salary from each job wise?
+SQL> SELECT * FROM EMP WHERE(JOB,SAL) IN(SELECT JOB,MAX(SAL)
+          FROM EMP GROUP BY JOB);
+Ex:
+waq to display the senior most employees details from each deptno wise?
+SQL> SELECT * FROM EMP WHERE(DEPTNO,HIREDATE)IN(SELECT DEPTNO,MIN(HIREDATE) FROM EMP GROUP BY DEPTNO);
+
+PSEUDO COLUMNS:
+=================
+	- pseudo columns are working just like normal columns in a table.
+		i) ROWID
+		ii) ROWNUM
+
+i) ROWID:
+========
+	- when we insert a new row into a table internally system is generating 
+a unique row identity / row address for each row wise automatically.
+	- these rowid's are saved in database directly so that these are permanent ID's.
+
+Ex:
+SQL> SELECT EMP.*,ROWID FROM EMP;
+SQL> SELECT ROWID,ENAME,DEPTNO FROM EMP WHERE DEPTNO=10;
+
+SQL> SELECT MIN(ROWID) FROM EMP;
+
+MIN(ROWID)
+------------------
+AAAWahAAHAAAAKcAAA
+
+SQL> SELECT MAX(ROWID) FROM EMP;
+
+MAX(ROWID)
+------------------
+AAAWahAAHAAAAKcAAN
+
+How to delete multiple duplicate rows except one duplicate row from a table:
+================================================================
+DEMO_TABLE:
+============
+SQL> SELECT * FROM TEST;
+
+       SNO NAME
+---------- ----------
+         1 A
+         1 A
+         1 A
+         2 B
+         2 B
+         3 C
+         4 D
+         4 D
+         4 D
+         5 E
+         5 E
+
+Solution:
+========
+SQL> DELETE FROM TEST WHERE ROWID NOT IN(SELECT MAX(ROWID) FROM TEST GROUP BY SNO);
+SQL> SELECT * FROM TEST;
+
+12-09-2024:
+===========
+ii) ROWNUM:
+===========
+	- to generate row numbers to each row wise (or) to each group of rows wise 
+from a table automatically.
+	- row numbers are not saved in database so that these are temporary numbers.
+	- by using rownum we will perform TOP n, Nth row operations on a table.
+
+Ex:
+SQL> SELECT ROWNUM,EMP.* FROM EMP;
+SQL> SELECT ROWNUM,ENAME,DEPTNO FROM EMP WHERE DEPTNO=10;
+
+EX:
+waq to fetch the 1st row from emp table by using rownum?
+SQL> SELECT * FROM EMP WHERE ROWNUM=1;
+
+EX:
+waq to fetch the 2nd row from emp table by using rownum?
+SQL> SELECT * FROM EMP WHERE ROWNUM=2;
+no rows selected
+	- Generally rownum start with 1 for every selected row from a table.so to overcome
+this we will use the following operators are < ,  < =  and MINUS.
+
+Solution:
+========
+SQL> SELECT * FROM EMP WHERE ROWNUM<=2
+  2  MINUS
+  3  SELECT * FROM EMP WHERE ROWNUM=1;
+
+EX:
+waq to fetch the 5th position row from emp table by using rownum?
+SQL> SELECT * FROM EMP WHERE ROWNUM<=5
+  2  MINUS
+  3  SELECT * FROM EMP WHERE ROWNUM<=4;
+
+EX:
+waq to fetch from 3rd position row to 9th position row from emp table by using rownum?
+SQL> SELECT * FROM EMP WHERE ROWNUM<=9
+  2  MINUS
+  3  SELECT * FROM EMP WHERE ROWNUM<3;
+
+EX:
+waq to fetch the last two rows from emp table by using rownum?
+SQL> SELECT * FROM EMP WHERE ROWNUM<=14
+  2  MINUS
+  3  SELECT * FROM EMP WHERE ROWNUM<=12;
+	(OR)
+SQL> SELECT * FROM EMP
+  2  MINUS
+  3  SELECT * FROM EMP WHERE ROWNUM<=(SELECT COUNT(*)-2 FROM EMP);
+
+EX:
+waq to fetch top 10 rows from emp table by using rownum?
+SQL> SELECT * FROM EMP WHERE ROWNUM<=10;
+
+INLINE VIEW:
+===========
+	- Providing a select query inplace of table name in SELECT statement is known as "INLINE VIEW".
+				(or)
+	- Providing a select query under FROM clause in SELECT statement is also calle das "INLINE VIEW".
+
+syntax:
+=========
+SELECT * FROM <TABLE NAME>; ------------select query
+SELECT * FROM (<select query>);------------inline view
+
+NOTE:
+=====
+	- In inline view mechanism the result of inner query will act as a table for outer query.
+
+Why INLINE VIEW?
+===============
+	- Inline view technique is used for two reasons in database.
+	Case-1: 
+	======
+		- Generally column alias name is not allowed under "WHERE" clause condition.
+	if we want use column alias name under "WHERE" clause then we should use "INLINE view".
+	
+	Case-2:
+	=======
+		- Generall subqueries are not allowed "ORDER BY".if we want to use
+	"order by" clause in subquery then we should use "INLINE VIEW".
+
+Ex on column alias name under "WHERE" clause:
+========================================
+Ex:
+waq to display employees whose annula salary is more than 25000?
+SQL> SELECT EMPNO,ENAME,SAL,SAL*12 AS ANN_SAL FROM EMP WHERE ANN_SAL>25000;
+ERROR at line 2:
+ORA-00904: "ANN_SAL": invalid identifier
+
+By using INLIN VIEW:
+=================
+SQL> SELECT * FROM(SELECT EMPNO,ENAME,SAL,SAL*12 AS ANN_SAL
+  2  FROM EMP) WHERE ANN_SAL>25000;
+
+Using Rownum alias name:
+======================
+Ex:
+waq to fetch 3rd position row from emp table by using rownum alias name along with 
+INLINE VIEW?
+SQL> SELECT * FROM(SELECT ROWNUM R,EMP.* FROM EMP)WHERE R=3;
+
+Ex:
+waq to fetch 1st,5th,10th,14th position rows from emp table by using rownum alias name 
+along with INLINE VIEW?
+SQL> SELECT * FROM(SELECT ROWNUM R,EMP.* FROM EMP)WHERE R IN(1,5,10,14);
+
+Ex:
+waq to fetch even position rows from emp table by using rownum alias name 
+along with INLINE VIEW?
+SQL> SELECT * FROM(SELECT ROWNUM R,EMP.* FROM EMP)WHERE MOD(R,2)=0;
+
+Ex:
+waq to fetch FIRST AND LAST position rows from emp table by using rownum alias name 
+along with INLINE VIEW?
+SQL> SELECT * FROM(SELECT ROWNUM R,EMP.* FROM EMP)WHERE R=1 OR R=(SELECT COUNT(*) FROM EMP);
+			(OR)
+SQL> SELECT * FROM(SELECT ROWNUM R,EMP.* FROM EMP)WHERE R IN(1,(SELECT COUNT(*) FROM EMP));
+
+Using "order by" clause in subquery:
+===============================
+Ex:
+waq to display the first five highest salaries rows from emp table by using rownum
+along with INLINE VIEW?
+SQL> SELECT * FROM(SELECT EMPNO,ENAME,SAL FROM EMP ORDER BY SAL DESC) 
+         WHERE ROWNUM<=5;
+
+Ex:
+waq to display the 5th highest salary row from emp table by using rownum
+along with INLINE VIEW?
+SQL> SELECT * FROM(SELECT EMPNO,ENAME,SAL FROM EMP ORDER BY SAL DESC) WHERE ROWNUM<=5
+  2  MINUS
+  3  SELECT * FROM(SELECT EMPNO,ENAME,SAL FROM EMP ORDER BY SAL DESC) WHERE ROWNUM<=4;
+
+14-09-2024:
+==========
+2. Co-related subquery:
+====================
+	- In this mechanism first outer query is executed and later inner will execute.
+
+syntax to find out "Nth" high / low salary:
+===================================
+SELECT * FROM <TABLE NAME> <TABLE ALIAS NAME1> WHERE N-1=(SELECT
+COUNT(DISTINCT <COLUMN NAME>) FROM <TABLE NAME> <TABLE ALIAS NAME2>
+WHERE <TABLE ALIAS NAME2>.<COLUMN NAME> < (or) > <TABLE ALIAS NAME1>.<COLUMN NAME>);
+		
+		Here,
+			>  ---------> for highest salary
+			<  ----------> for lowest salary
+
+DEMO_TABLE:
+===========
+SQL> SELECT * FROM TEST;
+
+       EID ENAME             SAL
+---------- ---------- ----------
+      1021 SMITH           85000
+      1022 JONES           37000
+      1023 ALLEN           85000
+      1024 ADAMS           18000
+      1025 SCOTT            8000
+
+EX:
+waq to findout the 1st highest salary employees details?
+SQL> SELECT * FROM TEST T1 WHERE 0=(SELECT
+  2  COUNT(DISTINCT SAL) FROM TEST T2
+  3  WHERE T2.SAL>T1.SAL);
+
+EX:
+waq to findout the 3rd highest salary employees details?
+SQL> SELECT * FROM TEST T1 WHERE 2=(SELECT
+  2  COUNT(DISTINCT SAL) FROM TEST T2
+  3  WHERE T2.SAL>T1.SAL);
+
+EX:
+waq to findout the 1st lowest salary employees details?
+SQL> SELECT * FROM TEST T1 WHERE 0=(SELECT
+    COUNT(DISTINCT SAL) FROM TEST T2
+    WHERE T2.SAL<T1.SAL);
+
+syntax to display "TOP n" high / low salaries:
+======================================
+SELECT * FROM <TABLE NAME> <TABLE ALIAS NAME1> WHERE N>(SELECT
+COUNT(DISTINCT <COLUMN NAME>) FROM <TABLE NAME> <TABLE ALIAS NAME2>
+WHERE <TABLE ALIAS NAME2>.<COLUMN NAME> < (or) > <TABLE ALIAS NAME1>.<COLUMN NAME>);
+		
+		Here,
+			>  ---------> for highest salary
+			<  ----------> for lowest salary
+
+EX:
+waq to display TOP 3 highest salaries employees details from a table?
+SQL> SELECT * FROM TEST T1 WHERE 3>(SELECT
+    COUNT(DISTINCT SAL) FROM TEST T2
+    WHERE T2.SAL>T1.SAL);
+
+EX:
+waq to display TOP 3 lowest salaries employees details from a table?
+SQL> SELECT * FROM TEST T1 WHERE 3>(SELECT
+    COUNT(DISTINCT SAL) FROM TEST T2
+    WHERE T2.SAL<T1.SAL);
+
+NOTE:
+======
+1. To find out "Nth" high / low salary ----------> N-1
+2. To display "TOP n" high / low salaries -----> N>
+
+EXISTS operator:
+===============
+	- it is a special operator which is used in co-related subquery.
+	- it is used to check the required row is existing in a table or not.
+		> if a row is existing in a table then then it return TRUE.
+		> if a row is not existing in a table then it return FALSE.
+syntax:
+=======
+	where exists(inner qeury);
+
+EX:
+waq to display department details in which department the employees are working?
+SQL> SELECT * FROM DEPT D WHERE EXISTS(SELECT DEPTNO FROM EMP E 
+         WHERE E.DEPTNO=D.DEPTNO);
+
+EX:
+waq to display department details in which department the employees are not working?
+SQL> SELECT * FROM DEPT D WHERE NOT EXISTS(SELECT DEPTNO FROM EMP E 
+         WHERE E.DEPTNO=D.DEPTNO);
+=========================================================================
+ANALYTICAL FUNCTIONS:
+======================
+	I) RANK()
+	II) DENSE_RANK()
+	-  the above two functions are used to assign rank numbers to each rows wise
+(or) to each group of rows wise on a table.
+
+
+ENAME	SALARY	RANK()	DENSE_RANK()
+======	=======	======	=============
+A	85000	1	1
+B	72000	2	2
+C	72000	2	2
+D	68000	4	3
+E	55000	5	4
+F	46000	6	5
+G	46000	6	5
+H	30000	8	6
+
+syntax:
+=======
+analytical function name()over([partition by <column name>] order by <column name> <asc/desc>)
+
+	Here,
+		partition by clause is optional
+		order by clause is mandatory
+
+Without "partition by" clause:
+=========================
+SQL> SELECT ENAME,SAL,RANK()OVER(ORDER BY SAL DESC) AS RANKS FROM EMP;
+SQL> SELECT ENAME,SAL,DENSE_RANK()OVER(ORDER BY SAL DESC) AS RANKS FROM EMP;
+
+With "partition by" clause:
+======================
+SQL> SELECT ENAME,DEPTNO,SAL,RANK()OVER(PARTITION BY DEPTNO ORDER BY SAL DESC) AS RANKS FROM EMP;
+SQL> SELECT ENAME,DEPTNO,SAL,DENSE_RANK()OVER(PARTITION BY DEPTNO ORDER BY SAL DESC) AS RANKS FROM EMP;
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

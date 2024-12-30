@@ -1,0 +1,1123 @@
+SUB BLOCKS:(18-10-2024)
+===========
+	- sub blocks are named blocks which will save the logical code in database directly.
+	- pl/sql supports the following four types sub blocks objects those are,
+			1. stored procedures
+			2. stored functions
+			3. packages
+			4. Triggers
+1. stored procedures:
+==================
+	- it is a named block which contains "pre-compiled code".
+	- by using stored procedure we will avoid unnecessary compilation of the code.
+syntax:
+======
+CREATE [OR REPLACE]  PROCEDURE <PNAME>(<parameter name1> [mode type] <datatype>,.....)
+IS
+<declare variables>;
+BEGIN
+<procedure body / statements>;
+END;
+/
+
+How to call a stored procedure:
+==========================
+Syntax-1: ( Using Execute command)
+========
+EXECUTE <pname>(value/(s));
+	(OR)
+EXEC <pname>(value / (s));
+
+Syntax-2: ( Using Anonymouse block )
+========
+BEGIN
+<pname>(value / (s));
+END;
+/
+Types of parameter modes:
+========================
+	- In pl/sql,stored procedures are supporting the following three types of parameters 
+modes.
+		i) IN mode :
+		==========
+			- these parameters are default parameters of stored procedure.
+			- it will store the input values which was given by user at runtime.
+
+		ii) OUT mode :
+		============
+			- generally stored procedures are never return a value.
+			- if a stored procedure want to return a value then we must 
+		use "OUT" parameters.
+	
+
+		iii) IN OUT mode:
+		==============
+			- it is a variable which will store and return a value.
+
+Examples on "IN" parameters:
+==========================
+Ex:
+create a SP to find out the sum of two numbers by using "IN" paramters?
+SQL> CREATE OR REPLACE PROCEDURE SP1(X IN NUMBER,Y IN NUMBER)
+  2  IS
+  3  BEGIN
+  4  DBMS_OUTPUT.PUT_LINE('SUM OF TWO NUMBERS:-'||(X+Y));
+  5  END;
+  6  /
+Procedure created.
+
+TESTING:
+syntax-1:
+========
+SQL> EXECUTE SP1(10,20);
+	(OR)
+SQL> EXEC SP1(20,30);
+SUM OF TWO NUMBERS:-50
+
+syntax-2:
+========
+SQL> BEGIN
+  2  SP1(34,12);
+  3  END;
+  4  /
+SUM OF TWO NUMBERS:-46
+PL/SQL procedure successfully completed.
+
+NOTE:
+=====
+	- To view sub blocks objects(procedure/function/package/trigger) in oracle then 
+we use a datadictionary is "user_objects".
+
+Ex:
+SQL> DESC USER_OBJECTS;
+SQL> SELECT OBJECT_NAME FROM USER_OBJECTS WHERE OBJECT_TYPE='PROCEDURE';
+
+	- To view the source code of sub block object(procedure/function/package/trigger)
+in oracle then we use a datadictionary is "user_source".
+
+Ex:
+SQL> DESC USER_SOURCE;
+SQL> SELECT TEXT FROM USER_SOURCE WHERE NAME='SP1';
+
+EX:
+create a SP to input EMPNO and display that employee NAME,SALARY details from emp table
+by using IN parameter?
+SQL> CREATE OR REPLACE PROCEDURE SP2(p_EMPNO IN NUMBER)
+  2  IS
+  3  v_ENAME VARCHAR2(10);
+  4  v_SAL NUMBER(8,2);
+  5  BEGIN
+  6  SELECT ENAME,SAL INTO v_ENAME,v_SAL FROM EMP WHERE EMPNO=p_EMPNO;
+  7  DBMS_OUTPUT.PUT_LINE(v_ENAME||','||v_SAL);
+  8  END;
+  9  /
+
+OUTPUT:
+=========
+SQL> EXECUTE SP2(7788);
+SCOTT,3000
+
+Examples on "OUT" parameters:
+===========================
+Ex:
+create a SP to return the cube of the given value by using "OUT" parameter?
+SQL> CREATE OR REPLACE PROCEDURE SP3(X IN NUMBER,Y OUT NUMBER)
+  2  IS
+  3  BEGIN
+  4  Y:=X*X*X;
+  5  END;
+  6  /
+
+TESTING:
+SQL> EXECUTE SP3(5);
+ERROR at line 1:
+ORA-06550: line 1, column 7:
+PLS-00306: wrong number or types of arguments in call to 'SP3'.
+
+	- To overcome the above problem we should follow the following three steps.
+
+step1: Declare binding / referenced variables for "OUT" parameters of SP:
+============================================================
+syntax:
+======
+	var[iable] <bind/reference variable name> <datatype>[size];
+
+step2: Adding this bind/referenced variables to a stored procedure:
+=======================================================
+syntax:
+======
+	execute <pname>(value1,value2,......., :<bind/referenced variables name1>,........);
+
+step3: Print this bind/referenced variables:
+====================================
+syntax:
+=======
+	print <bind/refereced variable name>;
+
+
+OUTPUT:
+========
+SQL> VAR r NUMBER;
+SQL> EXECUTE SP3(5,:r);
+SQL> PRINT r;
+
+         R
+-------------------
+       125
+
+EX:
+create a SP to input EMPNO as a "IN" parameter and return that employee provident fund and
+professional tax at 10%,20% on their basic salary by using "OUT" parameters?
+
+SQL> CREATE OR REPLACE PROCEDURE SP4(p_EMPNO IN NUMBER,PF OUT NUMBER,PT OUT NUMBER)
+  2  IS
+  3  v_BSAL NUMBER(8,2);
+  4  BEGIN
+  5  SELECT SAL INTO v_BSAL FROM EMP WHERE EMPNO=p_EMPNO;
+  6  PF:=v_BSAL*0.1;
+  7  PT:=v_BSAL*0.2;
+  8  END;
+  9  /
+
+OUTPUT:
+========
+SQL> VAR rPF NUMBER;
+SQL> VAR rPT NUMBER;
+SQL> EXECUTE SP4(7788,:rPF,:rPT);
+SQL> PRINT rPF rPT;
+
+Examples on "IN OUT" parameters:
+=============================
+Ex:
+create a SP to return the square of the given number by using IN OUT parameter?
+SQL> CREATE OR REPLACE PROCEDURE SP5(X IN OUT NUMBER)
+  2  IS
+  3  BEGIN
+  4  X:=X*X;
+  5  END;
+  6  /
+
+TESTING:
+=========
+SQL> EXECUTE SP5(5);
+ERROR at line 1:
+PLS-00363: expression '5' cannot be used as an assignment target.
+
+	- To overcome the above problem we should follow the following four steps.
+
+step1: Declare binding / referenced variables for "OUT" type:
+==================================================
+syntax:
+======
+	var[iable] <bind/reference variable name> <datatype>[size];
+
+step2: Assigning  a value to the bind/referenced variable:
+==============================================
+syntax:
+=======
+	execute :<bind/referenced variable name> := <value>;
+
+
+step3: Adding this bind/referenced variables to a stored procedure:
+=======================================================
+syntax:
+======
+	execute <pname>(:<bind/referenced variables name1>);
+
+step4: Print this bind/referenced variables:
+====================================
+syntax:
+=======
+	print <bind/refereced variable name>;
+
+OUTPUT:
+=======
+SQL> VAR R NUMBER;
+SQL> EXECUTE :R:=5;
+SQL> EXECUTE SP5(:R);
+SQL> PRINT R;
+
+         R
+-------------
+        25
+
+EX:
+create a SP to input EMPNO and return that employee salary from emp table by using 
+"IN OUT" parameter?
+SQL> CREATE OR REPLACE PROCEDURE SP6(X IN OUT NUMBER)
+  2  IS
+  3  BEGIN
+  4  SELECT SAL INTO X FROM EMP WHERE EMPNO=X;
+  5  END;
+  6  /
+
+OUTPUT:
+=========
+SQL> VAR R NUMBER;
+SQL> EXECUTE :R:=7788;
+SQL> EXECUTE SP6(:R);
+SQL> PRINT R;
+
+         R
+-------------------
+      3000
+
+How to drop a stored procedure:
+===========================
+syntax:
+======
+DROP PROCEDURE <PNAME>;
+
+EX:
+SQL> DROP PROCEDURE SP1;
+==============================================================================
+2. stored functions: (21-10-2024)
+=================
+	- function is a block of code to perform some task and must return a value.
+	- these functions are created by user as per the requirement.so that these functions
+	are called as "user defined functions" in oracle.
+
+syntax:
+======
+create [or replace] function <fname>(<parameter name1> <datatype>,.................)
+return <return variable DATATYPE>
+as
+<declare variables>;
+begin
+<function body / statements>;
+return <return variable NAME>;
+end;
+/
+
+How to call a stored function:
+========================
+SELECT <FNAME>(VALUES) FROM DUAL;
+
+EX:
+create a SF to input EMPNO and return that employee NAME from emp table?
+SQL> CREATE OR REPLACE FUNCTION SF1(p_EMPNO NUMBER)
+  2  RETURN VARCHAR2
+  3  AS
+  4  v_ENAME VARCHAR2(10);
+  5  BEGIN
+  6  SELECT ENAME INTO v_ENAME FROM EMP WHERE EMPNO=p_EMPNO;
+  7  RETURN v_ENAME;
+  8  END;
+  9  /
+
+OUTPUT:
+========
+SQL> SELECT SF1(7788) FROM DUAL;
+
+SF1(7788)
+-------------------------------
+SCOTT
+
+EX:
+create a SF to return the sum of salary of the given department name?
+SQL> CREATE OR REPLACE FUNCTION SF2(p_DNAME VARCHAR2)
+  2  RETURN NUMBER
+  3  AS
+  4  v_SUMSAL NUMBER(10);
+  5  BEGIN
+  6  SELECT SUM(SAL) INTO v_SUMSAL FROM EMP E INNER JOIN DEPT D ON E.DEPTNO=D.DEPTNO
+  7  AND DNAME=p_DNAME;
+  8  RETURN v_SUMSAL;
+  9  END;
+ 10  /
+
+OUTPUT:
+=========
+SQL> SELECT SF2('SALES') FROM DUAL;
+
+SF2('SALES')
+------------------------
+        9400
+
+EX:
+create a SF to return the no.of employees are joined in between the given two dates?
+SQL> CREATE OR REPLACE FUNCTION SF3(SD DATE,ED DATE)
+  2  RETURN NUMBER
+  3  AS
+  4  v_NUMEMP NUMBER(10);
+  5  BEGIN
+  6  SELECT COUNT(*) INTO v_NUMEMP FROM EMP WHERE HIREDATE BETWEEN SD AND ED;
+  7  RETURN v_NUMEMP;
+  8  END;
+  9  /
+
+OUTPUT:
+=========
+SQL> SELECT SF3('01-JAN-1981','31-DEC-1981') FROM DUAL;
+          10
+
+EX:
+create a SF to input EMPNO and return that employee gross salary based on the following
+conditions are,
+		i) HRA ----------- 10%
+		ii) DA ------------- 20%
+		iii) PF ------------ 5% on basic salary?
+
+SQL> CREATE OR REPLACE FUNCTION SF4(p_EMPNO NUMBER)
+  2  RETURN NUMBER
+  3  AS
+  4  v_BSAL NUMBER(10);
+  5  v_HRA NUMBER(10);
+  6  v_DA NUMBER(10);
+  7  v_PF NUMBER(10);
+  8  v_GROSS NUMBER(10);
+  9  BEGIN
+ 10  SELECT SAL INTO v_BSAL FROM EMP WHERE EMPNO=p_EMPNO;
+ 11  v_HRA:=v_BSAL*0.1;
+ 12  v_DA:=v_BSAL*0.2;
+ 13  v_PF:=v_BSAL*0.05;
+ 14  v_GROSS:=v_BSAL+v_HRA+v_DA+v_PF;
+ 15  RETURN v_GROSS;
+ 16  END;
+ 17  /
+
+OUTPUT:
+=========
+SQL> SELECT SF4(7788) FROM DUAL;
+
+ SF4(7788)
+----------------------
+      4050
+
+HOw to drop a stored function:
+==========================
+syntax:
+======
+DROP FUNCTION <FNAME>;
+
+EX:
+SQL> DROP FUNCTION SF1;
+===============================================================================
+PACKAGE: (22-10-2024)
+=========
+	- it is a collection of procedures and functions.
+	- by using package we can share the required stored procedures and stored functions
+	to multiple client applications.
+	- by using package we will implement "function overloading" mechanism in oracle.
+	- package can be created with two blocks.
+
+i) package specification block:
+=========================
+	- in this block we will declare the required procedures and functions.
+syntax:
+======
+create [or replace] package <package name>
+is / as
+<declare procedure>;
+<declare function>;
+end;
+/
+
+ii) package implementation block (body):
+==================================
+	- in this block we will implement the logical code of procedures and functions
+which was declared in package specification block.
+
+syntax:
+======
+create [or replace] package body <package name>
+is / as
+<implementing logical code of procedure>;
+<implmenting logical code of  function>;
+end;
+/	
+
+How to call a stored procedure from a package:
+========================================
+syntax:
+======
+EXECUTE <package name>.<procedure name>(values);
+
+How to call a stored function from a package:
+========================================
+syntax:
+======
+SELECT <package name>.<function name>(values) FROM DUAL;
+
+EX:
+create a package to bind multiple stored procedures?
+SQL> CREATE OR REPLACE PACKAGE PK1
+  2  IS
+  3  PROCEDURE SP1;
+  4  PROCEDURE SP2;
+  5  END;
+  6  /
+
+SQL> CREATE OR REPLACE PACKAGE BODY PK1
+  2  IS
+  3  PROCEDURE SP1
+  4  IS
+  5  BEGIN
+  6  DBMS_OUTPUT.PUT_LINE('I AM SP1');
+  7  END SP1;
+  8  PROCEDURE SP2
+  9  IS
+ 10  BEGIN
+ 11  DBMS_OUTPUT.PUT_LINE('I AM SP2');
+ 12  END SP2;
+ 13  END;
+ 14  /
+
+OUTPUT:
+========
+SQL> EXECUTE PK1.SP1;
+I AM SP1
+
+SQL> EXECUTE PK1.SP2;
+I AM SP2
+
+EX:
+create a package to bind stored procedure and stored function?
+SQL> CREATE OR REPLACE PACKAGE PK2
+  2  IS
+  3  PROCEDURE SP1(p_EMPNO NUMBER);
+  4  FUNCTION SF1(p_JOB VARCHAR2) RETURN NUMBER;
+  5  END;
+  6  /
+
+SQL> CREATE OR REPLACE PACKAGE BODY PK2
+  2  IS
+  3  PROCEDURE SP1(p_EMPNO NUMBER)
+  4  IS
+  5  v_ENAME VARCHAR2(10);
+  6  BEGIN
+  7  SELECT ENAME INTO v_ENAME FROM EMP WHERE EMPNO=p_EMPNO;
+  8  DBMS_OUTPUT.PUT_LINE(v_ENAME);
+  9  END SP1;
+ 10  FUNCTION SF1(p_JOB VARCHAR2)
+ 11  RETURN NUMBER
+ 12  AS
+ 13  v_SUMSAL NUMBER(10);
+ 14  BEGIN
+ 15  SELECT SUM(SAL) INTO v_SUMSAL FROM EMP WHERE JOB=p_JOB;
+ 16  RETURN v_SUMSAL;
+ 17  END SF1;
+ 18  END;
+ 19  /
+
+OUTPUT:
+=========
+SQL> EXECUTE PK2.SP1(7788);
+SCOTT
+
+SQL> SELECT PK2.SF1('CLERK') FROM DUAL;
+
+PK2.SF1('CLERK')
+---------------------------
+            5550
+
+Implementing Function Overloading:
+==============================
+	- when we pass no.of arguments to the same function is called as 
+                 "function overloading".
+			
+Ex:
+SQL> CREATE OR REPLACE PACKAGE PK3
+  2  IS
+  3  FUNCTION F1(X NUMBER,Y NUMBER) RETURN NUMBER;
+  4  FUNCTION F1(A NUMBER,B NUMBER,C NUMBER) RETURN NUMBER;
+  5  END;
+  6  /
+SQL> CREATE OR REPLACE PACKAGE BODY PK3
+  2  IS
+  3  FUNCTION F1(X NUMBER,Y NUMBER)
+  4  RETURN NUMBER
+  5  AS
+  6  BEGIN
+  7  RETURN X*Y;
+  8  END F1;
+  9  FUNCTION F1(A NUMBER,B NUMBER,C NUMBER)
+ 10  RETURN NUMBER
+ 11  AS
+ 12  BEGIN
+ 13  RETURN A+B+C;
+ 14  END F1;
+ 15  END;
+ 16  /
+
+OUTPUT:
+========
+SQL> SELECT PK3.F1(10,20,30) FROM DUAL;
+
+PK3.F1(10,20,30)
+---------------------------------
+              60
+
+SQL> SELECT PK3.F1(10,20) FROM DUAL;
+
+PK3.F1(10,20)
+------------------------------
+          200
+
+How to drop a package:
+====================
+syntax:
+=======
+DROP PACKAGE <PNAME>;
+
+EX:
+SQL> DROP PACKAGE PK1;
+===============================================================================
+Triggers: (23-10-2024)
+========
+	- it is a named block which contains set of statements and executed by the system
+automatically when we perform DML,DDL operations over database / tables.
+	- pl/sql supports the following two types of triggers.
+		1. DML triggers
+		2. DDL triggers(DB triggers)
+Purpose of Triggers:
+=================
+	- to raise security alerts.
+	- to control DML,DDL operations based on some business logical conditions.
+	- for validating data.
+	- for Auditing.
+
+1. DML triggers:
+=============
+	- when we created a trigger object based on DML operations(insert/update/delete)
+are called as "DML triggers".
+	- these triggers are executed by the system when user perform DML operations 
+on a specific table.
+
+syntax:
+======
+create [or replace] trigger <trigger name> 
+before / after insert or update or delete on <table name>
+[for each row] ---------> Used in row-level triggers only
+begin
+<trigger body / statements>;
+end;
+/
+
+Trigger Events:
+=============
+	- there are two events in trigger.
+		i) BEFORE event:
+		==============
+			- when we created a trigger object with "BEFORE" event.
+				First : Trigger body executed.
+				Later : DML query will execute.
+
+		i) AFTER event:
+		==============
+			- when we created a trigger object with "AFTER" event.
+				First : DML query executed.
+				Later : Trigger body will execute.
+NOTE:	 
+=====
+	- But both events of triggers are providing same result.
+
+Levels of triggers:
+===============
+	- a trigger object can be created at two levels.
+		i) Row level triggers
+		ii) Statement level triggers
+
+DEMO_TABLE:
+=============
+SQL> SELECT * FROM TEST;
+
+       	EID 	ENAME             	SAL
+	---------- 	---------- 		----------
+         	1 	SMITH           	15000
+         	2 	JONES           	25000
+         	3 	ADAMS           	15000
+         	4 	MARTIN          	12000
+
+i) Row level triggers:
+=================
+	- in this level a trigger body is executing for each row wise for a DML command.
+so that we must use "for each row" clause in row-level triggers.
+
+EX:
+SQL> CREATE OR REPLACE TRIGGER TR1
+  2  AFTER UPDATE ON TEST
+  3  FOR EACH ROW
+  4  BEGIN
+  5  DBMS_OUTPUT.PUT_LINE('HELLO TRIGGER');
+  6  END;
+  7  /
+
+TESTING:
+SQL> UPDATE TEST SET SAL=18000 WHERE SAL=15000;
+HELLO TRIGGER
+HELLO TRIGGER
+2 rows updated.
+
+ii) Statement level triggers:
+========================
+	- in this level a trigger body is executing only one time for DML statement.
+
+EX:
+SQL> CREATE OR REPLACE TRIGGER TR1
+  2  AFTER UPDATE ON TEST
+  3  BEGIN
+  4  DBMS_OUTPUT.PUT_LINE('HELLO TRIGGER');
+  5  END;
+  6  /
+
+TESTING:
+========
+SQL> UPDATE TEST SET SAL=33000 WHERE SAL=18000;
+HELLO TRIGGER
+2 rows updated.
+
+BIND VARIABLES:
+==============
+	- bind variables are working just like normal variables in a program.
+	- there are two types of bind variables.
+		i) :NEW  :
+		========
+			- this bind variable will store the value when we insert data 
+		into a table.
+		
+		syntax:
+		=======
+			:NEW.<column name>;
+
+		ii) :OLD  :
+		========
+			- this bind variable will store the value when we delete data 
+		from a table.
+
+		syntax:
+		=======
+			:OLD.<column name>;
+
+NOTE:
+=====
+	- update operation can perform with combination of :OLD and :NEW bind variables.
+
+Examples on raising security alerts:
+==============================
+EX:
+create a trigger to raise an alert on insert operation?
+SQL> CREATE OR REPLACE TRIGGER TRINSERT
+    AFTER INSERT ON TEST
+    BEGIN
+    RAISE_APPLICATION_ERROR(-20456,'Alert!!!SOMEONE INSERTING DATA INTO YOUR TABLE.PLZ CHECK IT!!!');
+    END;
+    /
+
+TESTING:
+=========
+SQL> INSERT INTO TEST VALUES(6,'TURNER',50000);
+ERROR at line 1:
+ORA-20456: Alert!!!SOMEONE INSERTING DATA INTO YOUR TABLE.PLZ CHECK IT!!!
+
+
+EX:
+create a trigger to raise an alert on update operation?
+SQL> CREATE OR REPLACE TRIGGER TRUPDATE
+    AFTER UPDATE ON TEST
+    BEGIN
+    RAISE_APPLICATION_ERROR(-20456,'Alert!!!SOMEONE UPDATING DATA IN YOUR TABLE.PLZ CHECK IT!!!');
+    END;
+    /
+
+
+EX:
+create a trigger to raise an alert on delete operation?
+SQL> CREATE OR REPLACE TRIGGER TRDELETE
+    AFTER DELETE ON TEST
+    BEGIN
+    RAISE_APPLICATION_ERROR(-20456,'Alert!!!SOMEONE DELETING DATA FROM YOUR TABLE.PLZ CHECK IT!!!');
+    END;
+    /
+
+EX:
+create a trigger to raise an alert on dml operations?
+SQL> CREATE OR REPLACE TRIGGER TRDML
+    AFTER INSERT OR UPDATE OR DELETE ON TEST
+    BEGIN
+    RAISE_APPLICATION_ERROR(-20456,'Alert!!!SOMEONE IS PERFORMING DML OPERATIONS ON YOUR TABLE.PLZ CHECK IT!!!');
+    END;
+    /
+
+TESTING:
+SQL> DELETE FROM TEST WHERE EID=3;
+
+24-10-2024:
+===========
+Examples on controling DML operations based on some business logical conditions:
+======================================================================
+Ex:
+create a trigger to restricted all DML operations on every weekends?
+SQL> CREATE OR REPLACE TRIGGER TRWEEKENDS
+  2  AFTER INSERT OR UPDATE OR DELETE ON TEST
+  3  BEGIN
+  4  IF TO_CHAR(SYSDATE,'DY') IN('SAT','SUN') THEN
+  5  RAISE_APPLICATION_ERROR(-20478,'WE CANNOT PERFORM DML OPERATIONS ON WEEKENDS');
+  6  END IF;
+  7  END;
+  8  /
+
+TESTING:
+SQL> INSERT INTO TEST VALUES(6,'WARD',65000);
+
+EX:
+create a trigger to restricted all DML operations on table in between 9am to 5pm?
+	
+	Logic:
+	======
+		24hrs format
+		===========
+		9am(9) : 9:00:00 to 9:59:59 -------------> comes under 9 o clock
+		5pm(17) : 5:00:00 to  5:59:59 -----------> upto 6 o clock
+		4pm(16) : 4:00:00 to  4:59:59 -----------> upto 5 o clock
+
+SQL> CREATE OR REPLACE TRIGGER TRTIME
+  2  AFTER INSERT OR UPDATE OR DELETE ON TEST
+  3  BEGIN
+  4  IF TO_CHAR(SYSDATE,'HH24') BETWEEN 9 AND 16 THEN
+  5  RAISE_APPLICATION_ERROR(-20589,'INVALID TIME.TRY AGAIN!!!');
+  6  END IF;
+  7  END;
+  8  /
+
+TESTING:
+=========
+SQL> INSERT INTO TEST VALUES(6,'WARD',65000);
+
+Examples on validating data:
+=========================
+Ex:
+create a trigger to validate insert operation on a table if new salary is less than to 15000?
+SQL> CREATE OR REPLACE TRIGGER TRIN
+  2  BEFORE INSERT ON TEST
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.SAL<15000 THEN
+  6  RAISE_APPLICATION_ERROR(-20365,'NEW SALARY SHOULD NOT BE LESS THAN TO 15000');
+  7  END IF;
+  8  END;
+  9  /
+
+TESTING:
+SQL> INSERT INTO TEST VALUES(6,'WARD',14000);--------NOT ALLOWED
+SQL> INSERT INTO TEST VALUES(6,'WARD',16000);--------ALLOWED
+
+EX:
+create a trigger to validate delete operation on a table if we try to delete the employee "SMITH"
+details?
+SQL> CREATE OR REPLACE TRIGGER TRDEL
+  2  BEFORE DELETE ON TEST
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :OLD.ENAME='SMITH' THEN
+  6  RAISE_APPLICATION_ERROR(-20547,'WE CANNOT DELETE SMITH DETAILS');
+  7  END IF;
+  8  END;
+  9  /
+
+TESTING:
+SQL> DELETE FROM TEST WHERE ENAME='WARD';-------ALLOWED
+SQL> DELETE FROM TEST WHERE ENAME='SMITH';------NOT ALLOWED
+
+EX:
+create a trigger to validate update operation on a table if new salary is less than to old salary?
+SQL> CREATE OR REPLACE TRIGGER TRUP
+  2  BEFORE UPDATE ON TEST
+  3  FOR EACH ROW
+  4  BEGIN
+  5  IF :NEW.SAL<:OLD.SAL THEN
+  6  RAISE_APPLICATION_ERROR(-20897,'NEW SALARY SHOULD NOT BE LESS THAN TO OLD SALARY');
+  7  END IF;
+  8  END;
+  9  /
+
+TESTING:
+SQL> UPDATE TEST SET SAL=24000 WHERE SAL=25000;-----NOT ALLOWED
+SQL> UPDATE TEST SET SAL=26000 WHERE SAL=25000;------ALLOWED
+
+25-10-2024:
+============
+AUDITING:
+=========
+	- when we perform dml operations on a table those operational information is saved in 
+another table is called as "Auditing Tables".
+
+EX on auditing for insert operation:
+=============================
+SQL> CREATE TABLE TEST88(EID NUMBER(4),ENAME VARCHAR2(10),SAL NUMBER(8,2));
+SQL> CREATE TABLE TEST88_AUDIT(EID NUMBER(4),AUDIT_INFOR VARCHAR2(100));
+
+Audit on Insert command:
+=======================
+SQL> CREATE OR REPLACE TRIGGER TRAUDIT
+  2  AFTER INSERT ON TEST88
+  3  FOR EACH ROW
+  4  BEGIN
+  5  INSERT INTO TEST88_AUDIT VALUES(:NEW.EID,'USER INSERTED A NEW ROW INTO
+  6  A TABLE ON:'||' '||TO_CHAR(SYSDATE,'DD-MON-YYYY HH:MI:SS AM'));
+  7  END;
+  8  /
+
+TESTING:
+=========
+SQL> INSERT INTO TEST88 VALUES(1021,'ALLEN',25000);
+SQL> SELECT * FROM TEST88;
+SQL> SELECT * FROM TEST88_AUDIT;
+
+Audit on Update command:
+=======================
+SQL> CREATE OR REPLACE TRIGGER TRAUDIT
+    AFTER UPDATE ON TEST88
+    FOR EACH ROW
+    BEGIN
+    INSERT INTO TEST88_AUDIT VALUES(:OLD.EID,'USER UPDATED A ROW IN A TABLE ON:'||' '||
+    TO_CHAR(SYSDATE,'DD-MON-YYYY HH:MI:SS AM'));
+    END;
+    /
+
+TESTING:
+=========
+SQL> UPDATE TEST88 SET SAL=85000 WHERE EID=1021;
+
+Audit on Delete command:
+=======================
+SQL> CREATE OR REPLACE TRIGGER TRAUDIT
+    AFTER DELETE ON TEST88
+    FOR EACH ROW
+    BEGIN
+    INSERT INTO TEST88_AUDIT VALUES(:OLD.EID,'USER DELETED A ROW FROM A TABLE ON:'||' '||
+    TO_CHAR(SYSDATE,'DD-MON-YYYY HH:MI:SS AM'));
+    END;
+    /
+
+TESTING:
+=========
+SQL> DELETE FROM TEST88 WHERE EID=1022;
+
+2. DDL triggers:
+=============
+	- when we created a trigger object based on DDL commands(create,alter,rename,drop)
+are called as  "DDL triggers".
+	- these triggers are executing by oracle server by default whenever user perform
+DDL operations on a specific database.
+
+syntax:
+=======
+CREATE [OR REPLACE] TRIGGER <TRIGGER NAME>
+BEFORE / AFTER CREATE OR ALTER OR RENAME OR DROP ON <USERNAME>.SCHEMA
+BEGIN
+<TRIGGER BODY / STATEMENTS>;
+END;
+/
+
+EX:
+create a trigger to raise a security alert on CREATE command?
+SQL> CREATE OR REPLACE TRIGGER TRDDL
+  2  AFTER CREATE ON MYDB4PM.SCHEMA
+  3  BEGIN
+  4  RAISE_APPLICATION_ERROR(-20859,'Alert!!!SOMEONE CREATING A NEW TABLE INTO YOUR DATABASE.
+  5  Plz...CHECK IT!!!!');
+  6  END;
+  7  /
+
+TESTING:
+SQL> CREATE TABLE TT999(SNO NUMBER(2),NAME VARCHAR2(10));
+ORA-20859: Alert!!!SOMEONE CREATING A NEW TABLE INTO YOUR DATABASE.Plz...CHECK IT!!!!
+
+NOTE:
+======
+	- These DDL triggers are handling by DBA in realtime.
+
+How to drop a trigger:
+===================
+syntax:
+=======
+DROP TRIGGER <TRIGGER NAME>;
+
+EX:
+SQL> DROP TRIGGER TRDDL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+
+
+
+
+
+
+
+
+
+

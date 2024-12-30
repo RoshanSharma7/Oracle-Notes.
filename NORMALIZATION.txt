@@ -1,0 +1,264 @@
+NORMALIZATION: (27-09-2024)
+===============
+	What is Normalization?
+	===================
+		- it is a technique which is used to decompose a table data/information
+	into multiple tables.
+
+	Where we want to use Normalization?
+	===============================
+		- at DB designing level
+	
+	Why Normalization ?
+	=================
+
+	EX:		Student_Branch_Details
+	=======================================================
+	STID	SNAME	BRANCH		HOD	OFFICE_NUMBER
+	========================================================
+	1021	smith	cse		Mr.X	040-22334455
+	1022	allen	cse		Mr.Y	040-22334455
+	1023	ward	cse		Mr.X	040-22334455
+	1024	miller	cse		Mr.Y	040-22334455
+	1025	jones	cse		Mr.X	040-22334455
+
+	Disadvantages:
+	=============
+		> Data redundancy problem(i.e duplicate data)
+		> Occupied more memory.
+		> Data inconsistency(i.e irregular data)
+		> Insertion problem.
+		> Updation problem.
+		> Deletion  problem.
+	- To overcome the above problems we need to use a technique is called as 
+	"Normalization".
+
+	By using Normalization:
+	====================
+
+	(pk)	Branch_Details				         Student_details (fk)
+	====================================		=======================
+	Bcode	Bname	Hod	Office_number		Stid	Sname	Bcode
+	====================================		=======================
+	1	cse	Mr.Y	040-22334455		1021	smith	1
+							1022	allen	1
+							1023	ward	1
+							1024	jones	1
+							1025	miller	1
+
+	Advantages:
+	=============
+		> To avoid Data redundancy problem(i.e avoid duplicate data)
+		> Occupied less memory.
+		> To avoid Data inconsistency(i.e regular data)
+		> To avoid Insertion problem.
+		> To avoid Updation problem.
+		> To avoid Deletion  problem.
+	
+	Types of Normalization forms?
+	=========================
+		i) First normal form(1NF)
+		ii) Second normal form(2NF)
+		iii) Third normal form(3NF)
+		iv) Boyce-codd normal form(BCNF)
+		v) Fourth normal form(4NF)
+		vi) Fifth normal form(5NF)
+
+i) First normal form(1NF):
+=====================
+	- For a table to be in the First Normal Form, it should follow the following 4 rules:
+		1. Each column should contain atomic value (atomic = single value).
+		2. A COLUMN SHOULD CONTAIN VALUES THAT ARE SAME DATATYPE.
+		3. All the columns in a table should have unique names.
+		4. The order in which data is stored, does not matter.
+
+	Ex:
+			    Student_details
+		=====================================
+		STID	SNAME	MAIL_ID   	MBNO
+		=====================================
+		3	JONES	jo@gmail.com	9874563214
+		1	JAMES	ja@gmail.com	8523697415
+		2	WARD	w@gmail.com	7412589636
+ 
+ii) Second normal form(2NF):
+========================		
+	- For a table to be in the Second Normal Form, it must satisfy two conditions:
+		1. The table should be in the First Normal Form.
+		2. There should be no Partial Dependency.
+
+WHAT IS DEPENDENCY: 
+===================
+	- IN A TABLE IF NON-KEY COLUMNS (NONPRIMARY KEY) ARE DEPENDS ON 
+KEY COLUMN (PRIMARY KEY) THEN IT IS CALLED AS FULLY DEPENDENCY / FUNCTIONAL 
+DEPENDENCY.
+
+	(PK)
+EX: 	STID 	SNAME 	BRANCH	ADDRESS
+
+	- Here, “STID “IS A KEY COLUMN  and “SNAME”,” BRANCH”,” ADDRESS” ARE 
+NON-KEY COLUMNS.
+	- These non-key columns are linked with key column is STID.so that in this table
+there is no partial dependency columns.
+
+WHAT IS PARTIAL DEPENDENCY: 
+==========================
+	- IN A TABLE IF NON-KEY COLUMN DEPENDS ON PART OF THE KEY COLUMN, 
+THEN IT IS CALLED AS PARTIAL DEPENDENCY.
+
+<PRIMARY KEY (A, B) / COMPOSITE PRIMARY KEY>
+EX: 	STU_ID	 	SUB_ID		     STU_MARKS 	TEACHER
+
+	- Here, “STU_ID and SUB_ID “ IS A KEY COLUMNS - ” MARKS”,” TEACHER” ARE NON-KEY
+COLUMNS. THEN “TEACHER” DEPENDS ON “SUB_ID” BUT NOT “STU_ID” COLUMN.
+	- Here we found a partial dependency column is "TEACHER" so that we need to 
+do decompose a table like below,
+
+	Subject_Table				         Student_table
+	============			                        =============
+(pk)					      |-------------(cpk)----------|		
+SUB_ID	    SUB_NAME	TEACHER		STU_ID	 	SUB_ID		     STU_MARKS 
+================================	=============================================
+
+Third normal form(3NF):
+=====================
+	- For a table to be in the third normal form there is two conditions.
+		1. It should be in the Second Normal form.
+		2. And it should not have Transitive Dependency.
+
+TRANSITIVE DEPENDENCY: 
+=======================
+	- IN TABLE IF NON-KEY COLUMN DEPENDS ON ANOTHER NON-KEY COLUMN, 
+THEN IT IS CALLED AS TRANSITIVE DEPENDENCY.
+
+EX: 
+				SCORE TABLE 	
+	|--------CPK-----------|      	============
+ STUDENT_ID 	SUBJECT_ID 	STU_MARKS 	EXAM_NAME      TOTAL_MARKS
+===========	==========	==========	===========     =============
+
+
+	- Here, “STU_ID and SUB_ID  “ ARE KEY COLUMNS . ” EXAM_NAME”,” TOTAL_MARKS” 
+ARE NON-KEY COLUMNS. THEN “TOTAL_MARKS” DEPENDS ON “EXAM_NAME” BUT NOT 
+“STU_ID and SUB_ID” COLUMNS.
+	- Here we found transitive dependency columns are "EXAM_NAME" and "TOTAL_MARKS"
+so that we need to do decompose the above table into multiple tables.
+
+(pk)	      Exam_Table			               (cpk)	        Score_Table       (fk)
+==================================		=========================================
+EXAM_ID	 EXAM_NAME   TOTAL_MARKS	  	STUDENT_ID  SUBJECT_ID  STU_MARKS  EXAM_ID
+==================================		=========================================	
+
+Boyce-codd normal form(BCNF):
+===========================
+	- For a table to satisfy the Boyce- Codd Normal Form, it should satisfy the following 
+two conditions:
+		1. It should be in the Third Normal Form.
+		2. And, for any dependency A → B, A should be a super key.
+
+SUPER KEY: 
+===========
+	- A COLUMN (OR) COMBNATION OF COLUMNS WHICH ARE UNIQUELY IDENTIFYING 
+A ROW IN A TABLE IS CALLED AS SUPER KEY.
+
+CANDIDATE KEY: 
+===============
+	- A MINIMAL SUPER KEY WHICH IS UNIQUELY IDENTIFYING A ROW IN A TABLE IS 
+CALLED AS CANDIDATE KEY.
+				(OR)
+	- A SUPER KEY WHICH IS SUBSET OF ANOTHER SUPER KEY, BUT THE COMBINATION 
+OF SUPER KEYS ARE NOT A CANDIDATE KEY.
+
+EX:
+			STUDENT TABLE
+	===================================================
+	STUDENT_ID 	NAME 	BRANCH 	MAILID 	REG_NUMBER
+	====================================================
+
+	Super key columns:
+	================
+	student_id	|	student_id + mailid		|
+	mailid		|	mailid + reg_number	| student_id + mailid + reg_number
+	reg_number	|	reg_number + student_id	|
+
+	Candidate key columns:
+	====================
+	student_id
+	mailid
+	reg_number
+
+Ex:
+			                 Professor Table
+		 |------------------cpk -------------------------|
+		============================================
+		PROFESSOR_ID 	SUBJECT(B) 	PROFESSOR(A)
+		==============================================
+		1		java		p.java
+		2		java		p.java
+
+	- Here, PROFESSOR column depends on SUBJECT so that PROFESSOR should be
+super key but not a super key.
+	- Now to make a PROFESSOR column is a super key and SUBJECT is non-super key
+	column in the table like below,
+
+		                                    Professor Table
+		|---------------cpk----------------------|
+		======================================
+		professor_id	professor 		Subject
+		======================================
+		1		p.java		java
+		2		p.java		java
+
+5. Fourth normal form(4NF):
+=======================
+	- For a table to satisfy the Fourth Normal Form, it should satisfy the following 
+two conditions:
+		1. It should be in the Boyce-Codd Normal Form.
+		2. A table does not contain more than one independent multivalued 
+		attribute / Multi Valued Dependency.
+
+Multi valued Dependency: 
+=====================
+	- In a table one column same value mapping with multiple values of another column 
+is called as multi valued dependency.
+
+EX:
+		        COLLEGE ENROLLMENT TABLE (5NF)
+		======================================
+		STUDENT_ID 	COURSE 		HOBBY
+		======================================
+		1 		ORACLE 		Cricket
+		1 		JAVA 		Reading
+		1 		C# 		Hockey
+
+	Mapping with multiple values of columns: (Decomposing table)
+	==================================
+		Course_details (4NF)	 		          Hobbies_details(4NF)
+		=============				            ==============
+	STUDENT_ID		COURSE			STUDENT_ID	HOBBY
+	==========		=======			===========	=======
+	1			oracle			1		cricket
+	1			java			1		reading
+	1			c#			1		hockey
+
+
+Fifth Normal Form (5NF): 
+====================
+	- If a table is having multi valued attributes and also that table cannot decomposed into 
+multiple tables are called as fifth normal form.
+
+EX:
+		        COLLEGE ENROLLMENT TABLE (5NF)
+		======================================
+		STUDENT_ID 	COURSE 		HOBBY
+		======================================
+		1 		ORACLE 		Cricket
+		1 		JAVA 		Reading
+		1 		C# 		Hockey
+=========================================================================================
+
+
+
+
+
+

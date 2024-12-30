@@ -1,0 +1,307 @@
+VIEWS: (20-09-2024)
+======
+	- it is a subset of a base table (or) a virtual object of a base table.
+	- view does not store any data / information but it can access the required 
+data / information from a base table and display to users.
+	- by using view we can hide the required columns and rows from a base table
+to the users.
+	- whenever we perform DML operation through a view then those operations
+are executed on base table automatically.
+
+Types of views:
+==============
+	- there are two types of views those are,
+		1. Simple view
+		2. Complex view
+
+1. Simple view:
+=============
+	- when we created a view to access data from a single base table is known 
+as "simple view".
+	-simple views are allowed to perform DML operations on a base table.
+
+syntax:
+=======
+create view <view name> as <select query>; 
+
+Ex:
+create a view to access data from DEPT table?
+SQL> CREATE VIEW V1 AS SELECT * FROM DEPT;
+
+TESTING:
+=========
+SQL> SELECT * FROM V1;
+SQL> INSERT INTO V1 VALUES(50,'SAP','HYD');------allowed
+SQL> UPDATE V1 SET LOC='PUNE' WHERE DEPTNO=50;----allowed
+SQL> DELETE FROM V1 WHERE DEPTNO=50;-----allowed
+
+Ex on View with specific columns : (Hiding columns)
+=============================
+SQL> CREATE VIEW V2 AS SELECT EMPNO,ENAME FROM EMP;
+
+TESTING:
+SQL> SELECT * FROM V2;
+SQL> INSERT INTO V2 VALUES(1122,'YUVIN');------allowed
+
+Ex on View with specific rows : (Hiding rows)
+==========================
+SQL> CREATE VIEW V3 AS SELECT * FROM EMP WHERE SAL=3000;
+
+TESTING:
+SQL> SELECT * FROM V3;
+
+21-09-2024:
+==========
+View options:
+============
+	- view can created with two options.
+		i) with read only
+		ii) with check option
+
+i) with read only:
+==============
+	- to restricted DML operations on a base table through a view object.
+
+Ex:
+SQL> CREATE VIEW V4 AS SELECT * FROM DEPT WITH READ ONLY;
+
+TESTING:
+SQL> INSERT INTO V4 VALUES(60,'DBA','PUNE');
+SQL> UPDATE V4 SET LOC='MUMBAI' WHERE DEPTNO=20;
+SQL> DELETE FROM V4 WHERE DEPTNO=30;
+ERROR at line 1:
+ORA-42399: cannot perform a DML operation on a read-only view
+
+ii) with check option:
+=================
+	- to restricted data on base table through a view object.
+
+EX:
+SQL> CREATE VIEW V5 AS SELECT * FROM DEPT WHERE LOC='HYD' WITH CHECK OPTION;
+
+TESTING:
+SQL> INSERT INTO V5 VALUES(60,'DBA','PUNE');------NOT ALLOWED
+SQL> INSERT INTO V5 VALUES(60,'DBA','HYD');--------ALLOWED
+
+2. Complex view:
+==============
+	- when we created a view object based on :
+		> multiple tables.
+		> by using group by clause.
+		> by using aggregative / grouping functions.
+		> by using having clause.
+		> by using distinct keyword.
+		> by set operators.
+		> by using joins.
+		> by using subquery.
+	- by default complex views are not allowed DML operations on base table.
+syntax:
+======
+create view <view name> as <select query>;
+
+Ex:
+SQL> CREATE VIEW V6 AS
+  2  SELECT * FROM EMP_HYD
+  3  UNION
+  4  SELECT * FROM EMP_MUMBAI;
+	- we cannot perform dml operations.
+
+EX:
+SQL> CREATE VIEW V7 AS
+  2  SELECT DEPTNO,SUM(SAL)
+  3  FROM EMP GROUP BY DEPTNO;
+ERROR at line 2:
+ORA-00998: must name this expression with a column alias
+
+	- when we are using function name while creating a view object we must use
+column alias name on function column expression like below,
+
+SQL> CREATE VIEW V7 AS
+  2  SELECT DEPTNO,SUM(SAL) AS SUM_OF_SALARY
+  3  FROM EMP GROUP BY DEPTNO;
+
+TESTING:
+SQL> SELECT * FROM V7; (before increment)
+SQL> UPDATE EMP SET SAL=SAL+1000 WHERE DEPTNO=10;
+SQL> SELECT * FROM V7; (after increment)
+SQL> UPDATE EMP SET SAL=SAL-1000 WHERE DEPTNO=10;
+SQL> SELECT * FROM V7; (after decrement)
+
+NOTE:
+=====
+	- to see all view objects in oracle database then use a datadictionary is "user_views".
+
+EX:
+SQL> DESC USER_VIEWS;
+SQL> SELECT VIEW_NAME FROM USER_VIEWS;
+
+NOTE:
+=====
+	- to see "select query" which we saved in a view object then we follow the following
+syntax:
+=======
+SQL> SELECT TEXT FROM USER_VIEWS  WHERE VIEW_NAME='V1';
+
+How to drop a view:
+=================
+syntax:
+======
+DROP VIEW <VIEW NAME>;
+
+EX:
+SQL> DROP VIEW V1;
+=============================================================================
+MATERIALIZED VIEW:
+=================
+	- mviews are created based on base table just like a normal view.
+
+views VS mviews:
+===============
+	Views 				        MViews
+	======				        ========
+1. view does not store data.			1. mview will store data.
+
+2. it is virtual / subset of a base table.		2. it is a table of a base table.
+
+3. when we drop a base table then the 		3. when we drop a base table then mviews
+corresponding view is not working.		are working.
+
+4. view is a dependent object.		4. mview is a independent object.
+
+5. view supports DML operations.		5. mviews are not supporting DML operations.
+
+syntax:
+=======
+create materialized view <view name> as <select query>;
+
+EX:
+SQL> CREATE TABLE TEST(SNO NUMBER(3),NAME VARCHAR2(10));
+SQL> CREATE VIEW V11 AS SELECT * FROM TEST;
+SQL> CREATE MATERIALIZED VIEW MV11 AS SELECT * FROM TEST;
+
+TESTING:
+=========
+SQL> INSERT INTO TEST VALUES(1,'A');
+	- when we insert data into a base table(test) it will reflect in view tbale (v11) but not
+mview table(mv11).
+	- if we want to see the data in mview then we should refresh a mview by using
+the following methods are,
+		i) ON DEMAND
+		ii) ON COMMIT
+
+i) ON DEMAND:
+=============
+	- It is a default refresh method of mview in oracle database.
+syntax:
+======
+EXECUTE DBMS_MVIEW.REFRESH('MVIEW NAME');
+
+EX:
+SQL> EXECUTE DBMS_MVIEW.REFRESH('MV11');
+
+SQL> SELECT * FROM TEST;
+SQL> SELECT * FROM V11;
+SQL> SELECT * FROM MV11;
+
+ii) ON COMMIT:
+=============
+	- we can also refresh a mview with the help of "on commit" attribute.
+syntax:
+======
+create materialized view <view name>
+refresh on commit
+as
+<select query>;
+
+EX:
+SQL> CREATE TABLE TEST12(SNO NUMBER(3),NAME VARCHAR2(10));
+SQL> CREATE VIEW V12 AS SELECT * FROM TEST12;
+
+SQL> CREATE MATERIALIZED VIEW MV12
+  2  REFRESH ON COMMIT
+  3  AS
+  4  SELECT * FROM TEST12;
+ERROR at line 4:
+ORA-12054: cannot set the ON COMMIT refresh attribute for the materialized view.
+
+	- To avoid the above error we must apply "primary key" constrainy on base table(test12)
+like below,
+
+Adding a primary key constraint to a table:
+=====================================
+SQL> ALTER TABLE TEST12 ADD CONSTRAINT PK_SNO PRIMARY KEY(SNO);
+
+SQL> CREATE MATERIALIZED VIEW MV12
+  2  REFRESH ON COMMIT
+  3  AS
+  4  SELECT * FROM TEST12;
+Materialized view created.
+
+TESTING:
+SQL> INSERT INTO TEST12 VALUES(1,'A');
+
+SQL> SELECT * FROM TEST12;
+SQL> SELECT * FROM V12;
+SQL> SELECT * FROM MV12;
+
+	- when we insert data into a base table(test12) it will reflect in view tbale (v12) but not
+in mview table(mv12).
+	- if we want to see the data in mview then we should refresh a mview by using "commit" command.
+SQL> COMMIT;
+SQL> SELECT * FROM MV12;
+
+NOTE:
+======
+	- To view all materialized views in oracle database then use a datadictionary is 
+"user_mviews".
+
+EX:
+SQL> DESC USER_MVIEWS;
+SQL> SELECT MVIEW_NAME  FROM USER_MVIEWS;
+
+How to drop a materialized view:
+===========================
+syntax:
+======
+DROP MATERIALIZED VIEW <MVIEW NAME>;
+
+EX:
+SQL> DROP MATERIALIZED VIEW MV11;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
